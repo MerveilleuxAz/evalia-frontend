@@ -7,10 +7,6 @@ Application frontend React pour le projet Evalia, entièrement conteneurisée av
 - [Architecture Docker](#architecture-docker)
 - [Prérequis](#prérequis)
 - [Démarrage rapide](#démarrage-rapide)
-- [Configuration détaillée](#configuration-détaillée)
-- [Commandes utiles](#commandes-utiles)
-- [Dépannage](#dépannage)
-- [Structure du projet](#structure-du-projet)
 
 ## 🐳 Architecture Docker
 
