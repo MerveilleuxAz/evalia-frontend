@@ -1,16 +1,62 @@
-# React + Vite
+# Evalia Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Application frontend React pour le projet Evalia, entièrement conteneurisée avec Docker.
 
-Currently, two official plugins are available:
+## 📋 Table des matières
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- [Architecture Docker](#architecture-docker)
+- [Prérequis](#prérequis)
+- [Démarrage rapide](#démarrage-rapide)
+- [Configuration détaillée](#configuration-détaillée)
+- [Commandes utiles](#commandes-utiles)
+- [Dépannage](#dépannage)
+- [Structure du projet](#structure-du-projet)
 
-## React Compiler
+## 🐳 Architecture Docker
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Le projet utilise deux configurations Docker distinctes :
 
-## Expanding the ESLint configuration
+### 1. **Développement** (`docker-compose.dev.yml`)
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Hot-reload activé (les modifications sont immédiatement visibles)
+- Montage du code source en volume
+- Port exposé : **5173**
+- Variables d'environnement pour le développement
+
+### 2. **Production** (`Dockerfile` - optionnel)
+
+- Multi-stage build pour une image légère
+- Serveur Nginx pour servir les fichiers statiques
+- Configuration SPA pour React Router
+
+## 🔧 Prérequis
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (version 20.10+)
+- [Docker Compose](https://docs.docker.com/compose/install/) (inclus avec Docker Desktop)
+- Git
+- 2 Go d'espace disque libre minimum
+
+Vérifiez votre installation :
+
+```bash
+docker --version
+docker compose version
+```
+
+## 🚀 Démarrage rapide
+
+### 1. Cloner le projet
+```bash
+git clone <url-de-votre-repo>
+cd evalia-frontend
+```
+
+### 2. Lancer avec Docker
+```bash
+docker compose -f docker-compose.dev.yml up
+```
+
+### 3. Arrêt l'Application
+```bash
+docker compose -f docker-compose.dev.yml down
+```
