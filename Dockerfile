@@ -25,7 +25,7 @@ RUN npm run build
 FROM nginx:alpine
 
 # Copier le résultat de la première étape dans le dossier servi par Nginx
-COPY --from=build /app/build /usr/share/nginx/html
+COPY --from=build /app/dist /usr/share/nginx/html
 # Si vous utilisez Vite, le dossier de sortie est souvent 'dist' : /app/dist
 
 # Si vous utilisez React Router en mode History, il faut configurer Nginx

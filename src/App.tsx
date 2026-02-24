@@ -28,6 +28,17 @@ import Careers from "./pages/Careers";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Rules from "./pages/Rules";
+import Profile from "./pages/Profile";
+import MyEvents from "./pages/MyEvents";
+import GettingStarted from "./pages/GettingStarted";
+import Tutorials from "./pages/Tutorials";
+import FAQ from "./pages/FAQ";
+import Blog from "./pages/Blog";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import UserManagement from "./pages/admin/UserManagement";
+import EventModeration from "./pages/admin/EventModeration";
+import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminSettings from "./pages/admin/AdminSettings";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +66,10 @@ const App = () => (
                   <Route path="/terms" element={<Terms />} />
                   <Route path="/privacy" element={<Privacy />} />
                   <Route path="/rules" element={<Rules />} />
+                  <Route path="/getting-started" element={<GettingStarted />} />
+                  <Route path="/tutorials" element={<Tutorials />} />
+                  <Route path="/faq" element={<FAQ />} />
+                  <Route path="/blog" element={<Blog />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
 
@@ -75,6 +90,14 @@ const App = () => (
                       </PrivateRoute>
                     }
                   />
+                  <Route
+                    path="/profile"
+                    element={
+                      <PrivateRoute>
+                        <Profile />
+                      </PrivateRoute>
+                    }
+                  />
 
                   {/* Organizer Routes */}
                   <Route
@@ -90,6 +113,56 @@ const App = () => (
                     element={
                       <PrivateRoute>
                         <ManageEvent />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/my-events"
+                    element={
+                      <PrivateRoute>
+                        <MyEvents />
+                      </PrivateRoute>
+                    }
+                  />
+
+                  {/* Admin Routes */}
+                  <Route
+                    path="/admin"
+                    element={
+                      <PrivateRoute role="administrateur">
+                        <AdminDashboard />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/users"
+                    element={
+                      <PrivateRoute role="administrateur">
+                        <UserManagement />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/events"
+                    element={
+                      <PrivateRoute role="administrateur">
+                        <EventModeration />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/analytics"
+                    element={
+                      <PrivateRoute role="administrateur">
+                        <AdminAnalytics />
+                      </PrivateRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin/settings"
+                    element={
+                      <PrivateRoute role="administrateur">
+                        <AdminSettings />
                       </PrivateRoute>
                     }
                   />

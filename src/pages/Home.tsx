@@ -1,13 +1,13 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { 
-  ArrowRight, 
-  Brain, 
-  Trophy, 
-  Users, 
-  Zap, 
-  Code2, 
+import {
+  ArrowRight,
+  Brain,
+  Trophy,
+  Users,
+  Zap,
+  Code2,
   Target,
   ChevronRight,
   Play,
@@ -57,81 +57,117 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
-        {/* Background Effects */}
-        <div className="absolute inset-0 bg-grid-pattern bg-[size:50px_50px] opacity-[0.03]" />
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[128px] animate-pulse-glow" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/20 rounded-full blur-[128px] animate-pulse-glow" style={{ animationDelay: '1s' }} />
-        
-        <div className="container mx-auto px-4 py-20 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Cinematic Background Image Layer */}
+        <div className="absolute inset-0 z-0">
+          <motion.div
+            initial={{ scale: 1.1, opacity: 0 }}
+            animate={{ scale: 1, opacity: 0.6 }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+            className="absolute inset-0"
+          >
+            <img
+              src="/hero-arena.png"
+              alt="Competition Arena"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-background/60 to-background" />
+          </motion.div>
+
+          {/* Animated Glow Overlays */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/20 rounded-full blur-[160px] animate-pulse-glow" />
+        </div>
+
+        {/* Floating Particles/Elements Simulation */}
+        <div className="absolute inset-0 bg-grid-pattern bg-[size:50px_50px] opacity-[0.05] z-1" />
+
+        <div className="container mx-auto px-4 relative z-10 pt-20">
+          <div className="max-w-5xl mx-auto text-center">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.6 }}
+              className="flex justify-center mb-8"
             >
-              <Badge className="mb-6 px-4 py-2 text-sm bg-primary/10 text-primary border-primary/20">
-                <Sparkles className="mr-2 h-4 w-4" />
-                Plateforme de l'IFRI
-              </Badge>
+              <div className="inline-flex items-center px-4 py-1.5 rounded-full border border-primary/30 bg-primary/5 backdrop-blur-md shadow-lg shadow-primary/10">
+                <span className="relative flex h-2 w-2 mr-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                </span>
+                <span className="text-xs font-bold uppercase tracking-wider text-primary">
+                  3 Compétitions Actives — 1.2k Participants
+                </span>
+              </div>
             </motion.div>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="font-display text-5xl md:text-7xl font-bold mb-6 leading-tight"
-            >
-              Relevez les défis de
-              <span className="gradient-text block">l'Intelligence Artificielle</span>
-            </motion.h1>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto"
-            >
-              Participez à des compétitions de Machine Learning, développez vos compétences
-              et mesurez-vous aux meilleurs talents de l'IFRI et d'ailleurs.
-            </motion.p>
-
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center"
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                  opacity: 1,
+                  transition: { staggerChildren: 0.2 }
+                }
+              }}
             >
-              <Button asChild size="lg" className="text-lg px-8 gap-2 bg-primary hover:bg-primary/90 glow">
-                <Link to="/events">
-                  Explorer les événements
-                  <ArrowRight className="h-5 w-5" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="lg" className="text-lg px-8 gap-2">
-                <Link to="/register">
-                  <Play className="h-5 w-5" />
-                  Créer un compte
-                </Link>
-              </Button>
+              <motion.h1
+                variants={{
+                  hidden: { opacity: 0, y: 40 },
+                  visible: { opacity: 1, y: 0 }
+                }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="font-display text-6xl md:text-8xl font-black mb-6 tracking-tighter leading-[0.9]"
+              >
+                ENTREZ DANS <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-400 to-cyan-300 drop-shadow-[0_0_20px_rgba(59,130,246,0.3)]">
+                  L'ARÈNE DE L'IA
+                </span>
+              </motion.h1>
+
+              <motion.p
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0 }
+                }}
+                className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto font-medium"
+              >
+                La plateforme de référence pour les challenges de Machine Learning.
+                Relevez des défis réels, grimpez le classement et montrez vos talents.
+              </motion.p>
+
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0 }
+                }}
+                className="flex flex-col sm:flex-row gap-6 justify-center"
+              >
+                <Button asChild size="xl" className="h-14 px-10 text-lg font-bold bg-primary hover:bg-primary/90 rounded-full shadow-2xl shadow-primary/30 group transition-all duration-300 hover:scale-105">
+                  <Link to="/events" className="flex items-center gap-2">
+                    REJOINDRE LA COMPÉTITION
+                    <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="xl" className="h-14 px-10 text-lg font-bold rounded-full border-2 hover:bg-muted/30 backdrop-blur-sm transition-all duration-300 hover:scale-105">
+                  <Link to="/register" className="flex items-center gap-2">
+                    DÉMARRER GRATUITEMENT
+                  </Link>
+                </Button>
+              </motion.div>
             </motion.div>
           </div>
         </div>
 
-        {/* Scroll indicator */}
+        {/* Scroll indicator - Enhanced */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1, duration: 0.6 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
+          transition={{ delay: 2, duration: 1 }}
+          className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4"
         >
-          <div className="w-6 h-10 border-2 border-muted-foreground/30 rounded-full flex justify-center p-2">
-            <motion.div
-              animate={{ y: [0, 8, 0] }}
-              transition={{ repeat: Infinity, duration: 1.5 }}
-              className="w-1 h-1 bg-primary rounded-full"
-            />
-          </div>
+          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground/50">Explorer</span>
+          <div className="w-[1px] h-12 bg-gradient-to-b from-primary to-transparent" />
         </motion.div>
       </section>
 
@@ -275,7 +311,7 @@ export default function Home() {
           >
             <div className="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-accent opacity-10" />
             <div className="absolute inset-0 bg-card/80 backdrop-blur-sm" />
-            
+
             <div className="relative px-8 py-16 md:px-16 md:py-24 text-center">
               <h2 className="font-display text-4xl md:text-5xl font-bold mb-6">
                 Prêt à relever le défi ?

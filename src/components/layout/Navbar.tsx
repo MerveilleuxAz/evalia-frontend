@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Brain, 
-  Menu, 
-  X, 
-  LogIn, 
-  LogOut, 
-  User, 
+import {
+  Brain,
+  Menu,
+  X,
+  LogIn,
+  LogOut,
+  User,
   LayoutDashboard,
   Plus,
   Trophy,
-  ChevronDown
+  ChevronDown,
+  ShieldCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -58,11 +59,10 @@ export function Navbar() {
               <Link
                 key={link.href}
                 to={link.href}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  isActive(link.href)
-                    ? 'text-primary bg-primary/10'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                }`}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${isActive(link.href)
+                  ? 'text-primary bg-primary/10'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  }`}
               >
                 {link.name}
               </Link>
@@ -81,7 +81,7 @@ export function Navbar() {
                     </Link>
                   </Button>
                 )}
-                
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="gap-2 px-2">
@@ -121,8 +121,16 @@ export function Navbar() {
                         </Link>
                       </DropdownMenuItem>
                     )}
+                    {hasRole('administrateur') && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin" className="cursor-pointer">
+                          <ShieldCheck className="mr-2 h-4 w-4" />
+                          Administration
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={logout}
                       className="cursor-pointer text-destructive focus:text-destructive"
                     >
@@ -171,16 +179,15 @@ export function Navbar() {
                     key={link.href}
                     to={link.href}
                     onClick={() => setIsOpen(false)}
-                    className={`block px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      isActive(link.href)
-                        ? 'text-primary bg-primary/10'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                    }`}
+                    className={`block px-4 py-2 rounded-lg text-sm font-medium transition-colors ${isActive(link.href)
+                      ? 'text-primary bg-primary/10'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                      }`}
                   >
                     {link.name}
                   </Link>
                 ))}
-                
+
                 <div className="pt-4 border-t border-border">
                   {isAuthenticated ? (
                     <>
@@ -191,6 +198,31 @@ export function Navbar() {
                       >
                         Mon Dashboard
                       </Link>
+                      <Link
+                        to="/profile"
+                        onClick={() => setIsOpen(false)}
+                        className="block px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                      >
+                        Mon Profil
+                      </Link>
+                      {hasRole('organisateur') && (
+                        <Link
+                          to="/my-events"
+                          onClick={() => setIsOpen(false)}
+                          className="block px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        >
+                          Mes Événements
+                        </Link>
+                      )}
+                      {hasRole('administrateur') && (
+                        <Link
+                          to="/admin"
+                          onClick={() => setIsOpen(false)}
+                          className="block px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        >
+                          Administration
+                        </Link>
+                      )}
                       <button
                         onClick={() => {
                           logout();
