@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Brain, Mail, Lock, User, ArrowRight, Eye, EyeOff, GraduationCap, Briefcase } from 'lucide-react';
+import { Brain, Mail, Lock, User, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
-import type { UserRole } from '@/types';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -16,10 +14,10 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
+    username: '',
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'participant' as UserRole,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,11 +34,11 @@ export default function Register() {
     }
 
     try {
-      await register(formData.name, formData.email, formData.password, formData.role);
+      await register(formData.name, formData.username, formData.email, formData.password);
       toast.success('Compte créé avec succès !');
       navigate('/dashboard');
-    } catch (error) {
-      toast.error('Erreur lors de l\'inscription');
+    } catch (error: any) {
+      toast.error(error.message || 'Erreur lors de l\'inscription');
     }
   };
 
@@ -85,6 +83,22 @@ export default function Register() {
                   placeholder="Jean Dupont"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="pl-10"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="username">Identifiant (Username)</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="username"
+                  type="text"
+                  placeholder="johndoe123"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   className="pl-10"
                   required
                 />
@@ -147,43 +161,7 @@ export default function Register() {
               </div>
             </div>
 
-            <div className="space-y-3">
-              <Label>Type de compte</Label>
-              <RadioGroup
-                value={formData.role}
-                onValueChange={(value) => setFormData({ ...formData, role: value as UserRole })}
-                className="grid grid-cols-2 gap-4"
-              >
-                <div>
-                  <RadioGroupItem value="participant" id="participant" className="peer sr-only" />
-                  <Label
-                    htmlFor="participant"
-                    className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-transparent p-4 hover:bg-muted/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer transition-all"
-                  >
-                    <GraduationCap className="mb-2 h-6 w-6" />
-                    <span className="font-medium">Participant</span>
-                    <span className="text-xs text-muted-foreground text-center mt-1">
-                      Participer aux compétitions
-                    </span>
-                  </Label>
-                </div>
-                <div>
-                  <RadioGroupItem value="organisateur" id="organisateur" className="peer sr-only" />
-                  <Label
-                    htmlFor="organisateur"
-                    className="flex flex-col items-center justify-between rounded-lg border-2 border-muted bg-transparent p-4 hover:bg-muted/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/5 cursor-pointer transition-all"
-                  >
-                    <Briefcase className="mb-2 h-6 w-6" />
-                    <span className="font-medium">Organisateur</span>
-                    <span className="text-xs text-muted-foreground text-center mt-1">
-                      Créer des compétitions
-                    </span>
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            <Button type="submit" className="w-full gap-2" size="lg" disabled={isLoading}>
+            <Button type="submit" className="w-full gap-2 mt-4" size="lg" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />

@@ -83,13 +83,13 @@ export default function EventSubmit() {
     if (!currentEvent) return;
     
     const ext = '.' + file.name.split('.').pop()?.toLowerCase();
-    if (!currentEvent.rules.allowed_formats.includes(ext)) {
-      toast.error(`Format non supporté. Formats acceptés: ${currentEvent.rules.allowed_formats.join(', ')}`);
+    if (!currentEvent.config.allowed_formats.includes(ext)) {
+      toast.error(`Format non supporté. Formats acceptés: ${currentEvent.config.allowed_formats.join(', ')}`);
       return;
     }
     
-    if (file.size > currentEvent.rules.max_file_size_mb * 1024 * 1024) {
-      toast.error(`Fichier trop volumineux. Taille max: ${currentEvent.rules.max_file_size_mb} MB`);
+    if (file.size > currentEvent.config.max_file_size_mb * 1024 * 1024) {
+      toast.error(`Fichier trop volumineux. Taille max: ${currentEvent.config.max_file_size_mb} MB`);
       return;
     }
     
@@ -130,8 +130,8 @@ export default function EventSubmit() {
   const canSubmit = 
     event.status === 'active' && 
     event.my_participation?.is_joined &&
-    dailySubmissions < event.rules.max_submissions_per_day &&
-    (event.my_participation?.my_submissions_count || 0) < event.rules.max_submissions_total;
+    dailySubmissions < event.config.max_submissions_per_day &&
+    (event.my_participation?.my_submissions_count || 0) < event.config.max_submissions_total;
 
   if (!event.my_participation?.is_joined) {
     return (
@@ -197,10 +197,10 @@ export default function EventSubmit() {
             <div className="text-right">
               <p className="text-sm text-muted-foreground mb-1">Quota aujourd'hui</p>
               <p className="text-lg font-bold">
-                <span className={dailySubmissions >= event.rules.max_submissions_per_day ? 'text-destructive' : 'text-foreground'}>
+                <span className={dailySubmissions >= event.config.max_submissions_per_day ? 'text-destructive' : 'text-foreground'}>
                   {dailySubmissions}
                 </span>
-                <span className="text-muted-foreground"> / {event.rules.max_submissions_per_day}</span>
+                <span className="text-muted-foreground"> / {event.config.max_submissions_per_day}</span>
               </p>
             </div>
           </div>
@@ -244,7 +244,7 @@ export default function EventSubmit() {
                   >
                     <input
                       type="file"
-                      accept={event.rules.allowed_formats.join(',')}
+                      accept={event.config.allowed_formats.join(',')}
                       onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       disabled={!canSubmit}
@@ -369,7 +369,7 @@ export default function EventSubmit() {
                   <div>
                     <p className="text-sm text-muted-foreground mb-2">Formats acceptés</p>
                     <div className="flex flex-wrap gap-2">
-                      {event.rules.allowed_formats.map((format) => (
+                      {event.config.allowed_formats.map((format) => (
                         <Badge key={format} variant="outline">
                           {format}
                         </Badge>
@@ -379,22 +379,22 @@ export default function EventSubmit() {
 
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Taille maximale</p>
-                    <p className="font-semibold">{event.rules.max_file_size_mb} MB</p>
+                    <p className="font-semibold">{event.config.max_file_size_mb} MB</p>
                   </div>
 
                   <div>
                     <p className="text-sm text-muted-foreground mb-1">Timeout évaluation</p>
-                    <p className="font-semibold">{event.rules.timeout_minutes} minutes</p>
+                    <p className="font-semibold">{Math.round(event.config.execution_timeout_seconds / 60)} minutes</p>
                   </div>
 
                   <div className="pt-4 border-t border-border">
                     <p className="text-sm text-muted-foreground mb-2">Quota total</p>
                     <div className="flex justify-between text-sm mb-1">
                       <span>Utilisé</span>
-                      <span>{event.my_participation?.my_submissions_count || 0} / {event.rules.max_submissions_total}</span>
+                      <span>{event.my_participation?.my_submissions_count || 0} / {event.config.max_submissions_total}</span>
                     </div>
                     <Progress 
-                      value={((event.my_participation?.my_submissions_count || 0) / event.rules.max_submissions_total) * 100} 
+                      value={((event.my_participation?.my_submissions_count || 0) / event.config.max_submissions_total) * 100} 
                       className="h-2"
                     />
                   </div>

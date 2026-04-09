@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Users, BarChart3, Edit, Eye, MessageSquare, Calendar, Trophy } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { mockEvents } from '@/data/mockData';
+import { useCompetitions } from '@/hooks/useApi';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,21 +16,29 @@ const stagger = {
 export default function MyEvents() {
     const { user } = useAuth();
 
-    if (!user || user.role !== 'organisateur') {
+    if (!user) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <h1 className="text-2xl font-bold mb-2">Accès restreint</h1>
-                    <p className="text-muted-foreground mb-4">Cette page est réservée aux organisateurs.</p>
-                    <Button asChild><Link to="/">Retour à l'accueil</Link></Button>
+                    <p className="text-muted-foreground mb-4">Veuillez vous connecter pour accéder à vos compétitions.</p>
+                    <Button asChild><Link to="/login">Se connecter</Link></Button>
                 </div>
             </div>
         );
     }
 
+    const { data: competitionsData, isLoading } = useCompetitions();
+
     // Filter events organized by the current user
-    // Since mock data has specific organizer IDs, we match by name or ID if possible
-    const organizerEvents = mockEvents.filter(e => e.organizer.id === user.id || e.organizer.name === user.name);
+    // Since the API might not include all detailed organizer info in the list endpoint,
+    // we assume we just show recent events for now or filter locally.
+    const allEvents = competitionsData?.competitions || [];
+    const organizerEvents = allEvents.filter((e: any) => e.organizer?.id === user.id || e.organizer?.name === user.name || user.role === 'administrateur');
+
+    if (isLoading) {
+        return <div className="min-h-screen pt-32 text-center text-muted-foreground">Chargement de vos compétitions...</div>;
+    }
 
     return (
         <div className="min-h-screen bg-background pt-24 pb-12 px-4">
@@ -86,14 +94,14 @@ export default function MyEvents() {
                                                     <Users className="h-3 w-3" />
                                                     <span>Participants</span>
                                                 </div>
-                                                <p className="font-semibold">{event.stats.participants_count}</p>
+                                                <p className="font-semibold">{event.stats?.participants_count || 0}</p>
                                             </div>
                                             <div className="space-y-1">
                                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                                     <BarChart3 className="h-3 w-3" />
                                                     <span>Soumissions</span>
                                                 </div>
-                                                <p className="font-semibold">{event.stats.submissions_count}</p>
+                                                <p className="font-semibold">{event.stats?.submissions_count || 0}</p>
                                             </div>
                                         </div>
 

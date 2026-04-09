@@ -1,7 +1,7 @@
 export type EventStatus = 'upcoming' | 'active' | 'finished' | 'archived';
 export type EventDifficulty = 'beginner' | 'intermediate' | 'advanced';
 export type EventTheme = 'classification' | 'regression' | 'nlp' | 'vision' | 'other';
-export type UserRole = 'participant' | 'organisateur' | 'administrateur';
+export type UserRole = 'utilisateur' | 'administrateur';
 
 export interface User {
   id: string;
@@ -18,33 +18,6 @@ export interface Organizer {
   avatar?: string;
 }
 
-export interface Metric {
-  name: string;
-  is_primary: boolean;
-  weight: number;
-}
-
-export interface DatasetInfo {
-  train_size: string;
-  test_size: string;
-  features: string;
-  target: string;
-}
-
-export interface EventRules {
-  max_submissions_per_day: number;
-  max_submissions_total: number;
-  max_file_size_mb: number;
-  allowed_formats: string[];
-  timeout_minutes: number;
-}
-
-export interface EventStats {
-  participants_count: number;
-  submissions_count: number;
-  best_score: number;
-}
-
 export interface MyParticipation {
   is_joined: boolean;
   my_best_score?: number;
@@ -52,27 +25,74 @@ export interface MyParticipation {
   my_submissions_count: number;
 }
 
+export interface ApiCalendar {
+  start_date: string;
+  end_date: string;
+  registration_start?: string | null;
+  results_date?: string | null;
+  days_remaining?: number | null;
+}
+
+export interface ApiConfig {
+  allowed_formats: string[];
+  execution_timeout_seconds: number;
+  max_file_size_mb: number;
+  max_submissions_per_day: number;
+  max_submissions_total: number;
+}
+
+export interface ApiMetricsInfo {
+  higher_is_better: boolean;
+  label: string;
+  task: string;
+}
+
+export interface ApiMetrics {
+  primary: string;
+  secondary: string[];
+  info: ApiMetricsInfo;
+}
+
+export interface ApiStats {
+  participants: number;
+  total_submissions: number;
+  best_score?: number | null;
+}
+
+export interface ApiDownloads {
+  train_dataset?: string | null;
+  sample_submission?: string | null;
+}
+
 export interface Event {
   id: string;
   title: string;
   slug: string;
-  description_short: string;
-  description_full: string;
-  organizer: Organizer;
+  description: string | null;
+  problem_statement: string | null;
+  data_description: string | null;
+  evaluation_description: string | null;
+  rules: string | null;
   status: EventStatus;
-  difficulty: EventDifficulty;
-  theme: EventTheme;
-  start_date: string;
-  end_date: string;
-  registration_start: string;
-  banner_image?: string;
-  metrics: Metric[];
-  dataset_info: DatasetInfo;
-  rules: EventRules;
-  stats: EventStats;
+  task_type: EventTheme;
+  difficulty?: EventDifficulty;
+  banner_url: string | null;
+  banner_image?: string | null;
+  organizer?: Organizer;
+  calendar: ApiCalendar;
+  config: ApiConfig;
+  metrics: ApiMetrics;
+  stats: ApiStats;
+  downloads?: ApiDownloads;
+  prizes?: any[];
+  faq?: any[];
   my_participation?: MyParticipation;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
+  
+  // Retro-compatibility fields for parts of the app not fully migrated
+  start_date?: string;
+  end_date?: string;
 }
 
 export interface Submission {

@@ -5,19 +5,16 @@ import {
   Trophy,
   Medal,
   Award,
-  Filter,
   Search,
   ArrowRight,
   Users,
-  Brain,
   TrendingUp,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -34,11 +31,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useAuth } from '@/context/AuthContext';
-import { useEvents } from '@/context/EventContext';
-import { mockLeaderboard } from '@/data/mockData';
-import type { LeaderboardEntry, Event } from '@/types';
-import { formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { useCompetitions, useCompetitionParticipants } from '@/hooks/useApi';
 
 const getRankIcon = (rank: number) => {
   switch (rank) {
@@ -66,66 +59,31 @@ const getRankBg = (rank: number) => {
   }
 };
 
-// Build a global leaderboard by aggregating all events
-function buildGlobalLeaderboard(leaderboards: Record<string, LeaderboardEntry[]>): (LeaderboardEntry & { events_count: number })[] {
-  const aggregated: Record<string, { user_id: string; user_name: string; user_avatar?: string; total_score: number; total_submissions: number; events_count: number; last_submission: string }> = {};
-
-  Object.values(leaderboards).forEach((entries) => {
-    entries.forEach((entry) => {
-      if (!aggregated[entry.user_id]) {
-        aggregated[entry.user_id] = {
-          user_id: entry.user_id,
-          user_name: entry.user_name,
-          user_avatar: entry.user_avatar,
-          total_score: 0,
-          total_submissions: 0,
-          events_count: 0,
-          last_submission: entry.last_submission,
-        };
-      }
-      const agg = aggregated[entry.user_id];
-      agg.total_score += entry.best_score;
-      agg.total_submissions += entry.submissions_count;
-      agg.events_count += 1;
-      if (entry.last_submission > agg.last_submission) {
-        agg.last_submission = entry.last_submission;
-      }
-    });
-  });
-
-  const sorted = Object.values(aggregated).sort((a, b) => b.events_count - a.events_count || b.total_submissions - a.total_submissions);
-
-  return sorted.map((agg, idx) => ({
-    rank: idx + 1,
-    user_id: agg.user_id,
-    user_name: agg.user_name,
-    user_avatar: agg.user_avatar,
-    best_score: agg.total_score / agg.events_count,
-    submissions_count: agg.total_submissions,
-    last_submission: agg.last_submission,
-    events_count: agg.events_count,
-  }));
-}
-
 export default function Leaderboard() {
   const { user } = useAuth();
-  const { events } = useEvents();
+  const { data: competitionsData } = useCompetitions();
+  const events = competitionsData?.competitions || [];
+  
   const [selectedEventId, setSelectedEventId] = useState<string>('global');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const eventsWithLeaderboard = useMemo(
-    () => events.filter((e) => mockLeaderboard[e.id] && mockLeaderboard[e.id].length > 0),
-    [events]
+  const { data: participantsData, isLoading: isParticipantsLoading } = useCompetitionParticipants(
+    selectedEventId !== 'global' ? selectedEventId : ''
   );
 
-  const globalLeaderboard = useMemo(() => buildGlobalLeaderboard(mockLeaderboard), []);
-
+  // Map API participants to leaderboard entries. 
+  // Since the API doesn't provide scores yet, we mock the scores based on rank or set them to 0.
   const currentEntries = useMemo(() => {
-    let entries: (LeaderboardEntry & { events_count?: number })[];
-    if (selectedEventId === 'global') {
-      entries = globalLeaderboard;
-    } else {
-      entries = mockLeaderboard[selectedEventId] || [];
+    let entries: any[] = [];
+    if (selectedEventId !== 'global' && participantsData?.participants) {
+      entries = participantsData.participants.map((p: any, idx: number) => ({
+        rank: idx + 1,
+        user_id: p.id,
+        user_name: p.name || p.username,
+        user_avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.username}`,
+        best_score: 0,
+        submissions_count: 0,
+      }));
     }
     if (searchQuery.trim()) {
       entries = entries.filter((e) =>
@@ -133,18 +91,15 @@ export default function Leaderboard() {
       );
     }
     return entries;
-  }, [selectedEventId, searchQuery, globalLeaderboard]);
+  }, [selectedEventId, searchQuery, participantsData]);
 
-  const selectedEvent = events.find((e) => e.id === selectedEventId);
+  const selectedEvent = events.find((e: any) => e.id === selectedEventId);
 
   const top3 = currentEntries.filter((e) => e.rank <= 3);
-  const rest = currentEntries.filter((e) => e.rank > 3);
-
   const myEntry = currentEntries.find((e) => e.user_id === user?.id);
 
   return (
     <div className="min-h-screen bg-background pt-20">
-      {/* Header */}
       <section className="relative overflow-hidden py-16">
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-1/3 left-1/3 w-80 h-80 bg-yellow-500/20 rounded-full blur-3xl" />
@@ -165,14 +120,13 @@ export default function Leaderboard() {
               Leaderboard
             </h1>
             <p className="text-muted-foreground">
-              Consultez les classements par événement ou le classement global de la plateforme.
+              Consultez les participants par événement. Les scores arriveront très prochainement dans l'API !
             </p>
           </motion.div>
         </div>
       </section>
 
       <div className="container mx-auto px-4 pb-20">
-        {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <Select value={selectedEventId} onValueChange={setSelectedEventId}>
             <SelectTrigger className="w-full sm:w-72 bg-card/60">
@@ -180,9 +134,9 @@ export default function Leaderboard() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="global">
-                🌐 Classement global
+                🌐 Classement global (Bientôt)
               </SelectItem>
-              {eventsWithLeaderboard.map((event) => (
+              {events.map((event: any) => (
                 <SelectItem key={event.id} value={event.id}>
                   {event.title}
                 </SelectItem>
@@ -200,7 +154,6 @@ export default function Leaderboard() {
           </div>
         </div>
 
-        {/* Event info banner */}
         {selectedEvent && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -212,10 +165,8 @@ export default function Leaderboard() {
               <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
                 <span className="flex items-center gap-1">
                   <Users className="h-3.5 w-3.5" />
-                  {selectedEvent.stats.participants_count} participants
+                  {participantsData?.count || 0} participants
                 </span>
-                <span>•</span>
-                <span>Métrique : {selectedEvent.metrics.find((m) => m.is_primary)?.name}</span>
               </div>
             </div>
             <Button asChild variant="outline" size="sm" className="gap-2">
@@ -227,7 +178,6 @@ export default function Leaderboard() {
           </motion.div>
         )}
 
-        {/* My rank card */}
         {myEntry && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -257,8 +207,7 @@ export default function Leaderboard() {
           </motion.div>
         )}
 
-        {/* Podium */}
-        {top3.length >= 3 && (
+        {top3.length >= 3 && selectedEventId !== 'global' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -266,7 +215,6 @@ export default function Leaderboard() {
             className="mb-12"
           >
             <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto items-end">
-              {/* 2nd place */}
               <div className="text-center">
                 <div className="glass rounded-xl p-4 pt-6">
                   <Avatar className="w-14 h-14 mx-auto mb-2 ring-2 ring-gray-400/40">
@@ -275,12 +223,9 @@ export default function Leaderboard() {
                   </Avatar>
                   <Medal className="h-6 w-6 text-gray-400 mx-auto mb-1" />
                   <p className="font-semibold text-sm truncate">{top3[1]?.user_name}</p>
-                  <p className="font-mono text-lg font-bold">{top3[1]?.best_score.toFixed(4)}</p>
-                  <p className="text-xs text-muted-foreground">{top3[1]?.submissions_count} soumissions</p>
                 </div>
               </div>
 
-              {/* 1st place */}
               <div className="text-center -mt-4">
                 <div className="glass rounded-xl p-4 pt-6 border-yellow-500/30 relative">
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-yellow-500 text-yellow-950 text-xs font-bold px-3 py-0.5 rounded-full">
@@ -292,12 +237,9 @@ export default function Leaderboard() {
                   </Avatar>
                   <Trophy className="h-7 w-7 text-yellow-500 mx-auto mb-1" />
                   <p className="font-semibold truncate">{top3[0]?.user_name}</p>
-                  <p className="font-mono text-xl font-bold gradient-text">{top3[0]?.best_score.toFixed(4)}</p>
-                  <p className="text-xs text-muted-foreground">{top3[0]?.submissions_count} soumissions</p>
                 </div>
               </div>
 
-              {/* 3rd place */}
               <div className="text-center">
                 <div className="glass rounded-xl p-4 pt-6">
                   <Avatar className="w-14 h-14 mx-auto mb-2 ring-2 ring-amber-600/40">
@@ -306,16 +248,15 @@ export default function Leaderboard() {
                   </Avatar>
                   <Award className="h-6 w-6 text-amber-600 mx-auto mb-1" />
                   <p className="font-semibold text-sm truncate">{top3[2]?.user_name}</p>
-                  <p className="font-mono text-lg font-bold">{top3[2]?.best_score.toFixed(4)}</p>
-                  <p className="text-xs text-muted-foreground">{top3[2]?.submissions_count} soumissions</p>
                 </div>
               </div>
             </div>
           </motion.div>
         )}
 
-        {/* Table */}
-        {currentEntries.length > 0 ? (
+        {isParticipantsLoading ? (
+          <div className="text-center py-20 text-muted-foreground">Chargement des participants...</div>
+        ) : currentEntries.length > 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -327,14 +268,7 @@ export default function Leaderboard() {
                 <TableRow className="bg-muted/30 hover:bg-muted/30">
                   <TableHead className="w-20">Rang</TableHead>
                   <TableHead>Participant</TableHead>
-                  <TableHead className="text-right">
-                    {selectedEventId === 'global' ? 'Score moyen' : selectedEvent?.metrics.find((m) => m.is_primary)?.name || 'Score'}
-                  </TableHead>
-                  <TableHead className="text-right hidden sm:table-cell">Soumissions</TableHead>
-                  {selectedEventId === 'global' && (
-                    <TableHead className="text-right hidden md:table-cell">Événements</TableHead>
-                  )}
-                  <TableHead className="text-right hidden md:table-cell">Dernière activité</TableHead>
+                  <TableHead className="text-right">Score</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -357,7 +291,6 @@ export default function Leaderboard() {
                       <TableCell className="font-mono">
                         <div className="flex items-center gap-2">
                           {icon || <span className="text-muted-foreground">#{entry.rank}</span>}
-                          {entry.rank <= 3 && <span className="font-bold">{entry.rank}</span>}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -380,26 +313,8 @@ export default function Leaderboard() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right">
-                        <span className="font-mono font-semibold text-lg">
-                          {entry.best_score.toFixed(4)}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right hidden sm:table-cell text-muted-foreground">
-                        {entry.submissions_count}
-                      </TableCell>
-                      {selectedEventId === 'global' && (
-                        <TableCell className="text-right hidden md:table-cell text-muted-foreground">
-                          {(entry as any).events_count || '-'}
-                        </TableCell>
-                      )}
-                      <TableCell className="text-right hidden md:table-cell">
-                        <span className="text-sm text-muted-foreground">
-                          {formatDistanceToNow(new Date(entry.last_submission), {
-                            addSuffix: true,
-                            locale: fr,
-                          })}
-                        </span>
+                      <TableCell className="text-right text-muted-foreground">
+                        N/A
                       </TableCell>
                     </motion.tr>
                   );
@@ -410,9 +325,8 @@ export default function Leaderboard() {
         ) : (
           <div className="text-center py-20">
             <Trophy className="h-16 w-16 text-muted-foreground/20 mx-auto mb-4" />
-            <p className="text-muted-foreground text-lg">Aucun résultat trouvé</p>
-            <p className="text-sm text-muted-foreground/70 mt-1">
-              Essayez de modifier vos filtres ou participez à une compétition !
+            <p className="text-muted-foreground text-lg">
+              {selectedEventId === 'global' ? 'Veuillez sélectionner un événement pour voir les participants.' : 'Aucun résultat trouvé'}
             </p>
           </div>
         )}

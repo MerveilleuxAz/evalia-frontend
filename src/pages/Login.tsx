@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Brain, Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Brain, User, Lock, ArrowRight, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,31 +14,26 @@ export default function Login() {
   const { login, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: '',
   });
+  const [error, setError] = useState<string | null>(null);
 
   const from = (location.state as { from?: string })?.from || '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     
     try {
-      await login(formData.email, formData.password);
+      await login(formData.username, formData.password);
       toast.success('Connexion réussie !');
       navigate(from, { replace: true });
-    } catch (error) {
-      toast.error('Erreur de connexion');
-    }
-  };
-
-  const handleDemoLogin = async (email: string) => {
-    try {
-      await login(email, 'demo');
-      toast.success('Connexion réussie !');
-      navigate(from, { replace: true });
-    } catch (error) {
-      toast.error('Erreur de connexion');
+    } catch (err: any) {
+      console.error('Erreur de connexion capturée:', err);
+      const errorMsg = err.message || 'Identifiant ou mot de passe incorrect.';
+      setError("Identifiant ou mot de passe incorrect");
+      toast.error("Identifiant ou mot de passe incorrect");
     }
   };
 
@@ -70,19 +65,30 @@ export default function Login() {
               Connectez-vous pour accéder à votre espace
             </p>
           </div>
+          
+          {error && (
+            <div 
+              id="login-error-alert"
+              className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/50 text-red-500 flex items-center gap-3 text-sm font-medium animate-in fade-in slide-in-from-top-2"
+              style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.5)' }}
+            >
+              <AlertCircle className="h-5 w-5 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">Identifiant (Username)</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="vous@exemple.com"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  id="username"
+                  type="text"
+                  placeholder="Votre nom d'utilisateur"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   className="pl-10"
                   required
                 />
@@ -117,7 +123,7 @@ export default function Login() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full gap-2" size="lg" disabled={isLoading}>
+            <Button type="submit" className="w-full gap-2 mt-4" size="lg" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
@@ -131,31 +137,6 @@ export default function Login() {
               )}
             </Button>
           </form>
-
-          {/* Demo accounts */}
-          <div className="mt-6 pt-6 border-t border-border">
-            <p className="text-sm text-muted-foreground text-center mb-4">
-              Comptes de démonstration
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleDemoLogin('participant@evalia.com')}
-                disabled={isLoading}
-              >
-                Participant
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleDemoLogin('organisateur@evalia.com')}
-                disabled={isLoading}
-              >
-                Organisateur
-              </Button>
-            </div>
-          </div>
 
           {/* Footer */}
           <p className="mt-6 text-center text-sm text-muted-foreground">

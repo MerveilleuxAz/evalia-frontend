@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { User, Mail, Calendar, Shield, Edit3, Settings, LogOut, Trophy, Target, Zap } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -58,7 +59,7 @@ export default function Profile() {
                                 </Avatar>
                                 <h2 className="text-xl font-bold mb-1">{user.name}</h2>
                                 <Badge variant="secondary" className="mb-4">
-                                    {user.role === 'organisateur' ? 'Propriétaire' : user.role === 'administrateur' ? 'Administrateur' : 'Participant'}
+                                    {user.role === 'administrateur' ? 'Administrateur' : 'Utilisateur'}
                                 </Badge>
 
                                 <div className="space-y-3 pt-4 border-t border-border/50 text-left">
@@ -184,20 +185,20 @@ export default function Profile() {
                         </Card>
 
                         {/* Quick Actions for Organizers */}
-                        {user.role === 'organisateur' && (
+                        {user.role !== 'administrateur' && (
                             <Card className="bg-primary/5 border-primary/20">
                                 <CardHeader>
                                     <CardTitle className="text-primary flex items-center gap-2">
                                         <Zap className="h-5 w-5" />
-                                        Actions Rapides Oganisateur
+                                        Actions Rapides
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="grid sm:grid-cols-2 gap-4">
                                     <Button asChild className="w-full">
-                                        <a href="/events/create">Créer une compétition</a>
+                                        <Link to="/events/create">Créer une compétition</Link>
                                     </Button>
                                     <Button variant="outline" asChild className="w-full">
-                                        <a href="/my-events">Mes compétitions</a>
+                                        <Link to="/my-events">Mes compétitions</Link>
                                     </Button>
                                 </CardContent>
                             </Card>

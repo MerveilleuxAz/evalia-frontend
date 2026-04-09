@@ -12,42 +12,33 @@ import {
   Play,
   CheckCircle,
   FileCode,
-  AlertCircle,
-  BarChart3,
   Target,
-  Timer,
   Info,
   Database,
   Scale,
-  BookOpen,
-  MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { LeaderboardTable } from '@/components/events/LeaderboardTable';
 import { useEvents } from '@/context/EventContext';
 import { useAuth } from '@/context/AuthContext';
-import { formatDistanceToNow, format, differenceInDays, differenceInHours, differenceInMinutes } from 'date-fns';
+import { formatDistanceToNow, format, differenceInDays, differenceInHours } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-const statusConfig = {
+const statusConfig: Record<string, { label: string; icon: React.ComponentType<{ className?: string }>; className: string }> = {
   upcoming: { label: 'À venir', icon: Clock, className: 'status-upcoming' },
   active: { label: 'Actif', icon: Play, className: 'status-active' },
   finished: { label: 'Terminé', icon: CheckCircle, className: 'status-finished' },
+  closed: { label: 'Fermé', icon: CheckCircle, className: 'status-finished' },
   archived: { label: 'Archivé', icon: CheckCircle, className: 'status-archived' },
+  draft: { label: 'Brouillon', icon: CheckCircle, className: 'status-archived' },
 };
 
-const difficultyConfig = {
-  beginner: { label: 'Débutant', className: 'bg-success/10 text-success' },
-  intermediate: { label: 'Intermédiaire', className: 'bg-warning/10 text-warning' },
-  advanced: { label: 'Avancé', className: 'bg-destructive/10 text-destructive' },
-};
-
-const themeLabels = {
+const themeLabels: Record<string, string> = {
   classification: 'Classification',
   regression: 'Régression',
   nlp: 'NLP',
@@ -58,7 +49,7 @@ const themeLabels = {
 export default function EventDetails() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
-  const { currentEvent, leaderboard, loading, fetchEventById, fetchLeaderboard, joinEvent } = useEvents();
+  const { currentEvent: event, leaderboard, loading, fetchEventById, fetchLeaderboard, joinEvent } = useEvents();
   const { user, isAuthenticated } = useAuth();
   const [isJoining, setIsJoining] = useState(false);
 
@@ -80,7 +71,7 @@ export default function EventDetails() {
     setIsJoining(false);
   };
 
-  if (loading || !currentEvent) {
+  if (loading || !event) {
     return (
       <div className="min-h-screen pt-16 flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
@@ -88,15 +79,15 @@ export default function EventDetails() {
     );
   }
 
-  const event = currentEvent;
-  const status = statusConfig[event.status];
+  const status = statusConfig[event.status || 'archived'];
   const StatusIcon = status.icon;
-  const difficulty = difficultyConfig[event.difficulty];
+
+  const startDate = event.calendar?.start_date ? new Date(event.calendar.start_date) : new Date();
+  const endDate = event.calendar?.end_date ? new Date(event.calendar.end_date) : new Date();
+  const registrationDate = event.calendar?.registration_start ? new Date(event.calendar.registration_start) : startDate;
 
   const getCountdown = () => {
     const now = new Date();
-    const endDate = new Date(event.end_date);
-    const startDate = new Date(event.start_date);
     
     if (event.status === 'upcoming') {
       const days = differenceInDays(startDate, now);
@@ -114,13 +105,14 @@ export default function EventDetails() {
   };
 
   const countdown = getCountdown();
+  const primaryMetricLabel = event.metrics?.info?.label || event.metrics?.primary || 'Score';
 
   return (
     <div className="min-h-screen pt-16">
       {/* Hero Banner */}
       <section className="relative h-72 md:h-96 overflow-hidden">
         <img
-          src={event.banner_image || 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200&h=400&fit=crop'}
+          src={event.banner_url || 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200&h=400&fit=crop'}
           alt={event.title}
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -146,8 +138,13 @@ export default function EventDetails() {
                 <StatusIcon className="h-3 w-3" />
                 {status.label}
               </Badge>
-              <Badge className={difficulty.className}>{difficulty.label}</Badge>
-              <Badge variant="outline">{themeLabels[event.theme]}</Badge>
+              <Badge variant="outline">{themeLabels[event.task_type || 'other'] || 'Autre'}</Badge>
+              {isAuthenticated && event.my_participation?.is_joined && (
+                <Badge className="bg-success/20 text-success border-success/30 gap-1.5 backdrop-blur-md">
+                  <CheckCircle className="h-3 w-3" />
+                  Vous participez
+                </Badge>
+              )}
             </div>
             
             <h1 className="font-display text-3xl md:text-5xl font-bold mb-4">
@@ -157,11 +154,10 @@ export default function EventDetails() {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={event.organizer.avatar} />
-                  <AvatarFallback>{event.organizer.name.charAt(0)}</AvatarFallback>
+                  <AvatarFallback>E</AvatarFallback>
                 </Avatar>
                 <span className="text-sm text-muted-foreground">
-                  Organisé par <strong className="text-foreground">{event.organizer.name}</strong>
+                  Organisé par <strong className="text-foreground">EvalIA Plateforme</strong>
                 </span>
               </div>
             </div>
@@ -176,7 +172,7 @@ export default function EventDetails() {
             {/* Left Content */}
             <div className="lg:col-span-2">
               <Tabs defaultValue="overview" className="space-y-6">
-                <TabsList className="bg-muted/50 p-1">
+                <TabsList className="bg-muted/50 p-1 flex-wrap h-auto">
                   <TabsTrigger value="overview" className="gap-2">
                     <Info className="h-4 w-4" />
                     Vue d'ensemble
@@ -197,6 +193,10 @@ export default function EventDetails() {
                     <Trophy className="h-4 w-4" />
                     Classement
                   </TabsTrigger>
+                  <TabsTrigger value="participants" className="gap-2">
+                    <Users className="h-4 w-4" />
+                    Participants
+                  </TabsTrigger>
                 </TabsList>
 
                 {/* Overview Tab */}
@@ -207,14 +207,23 @@ export default function EventDetails() {
                     </CardHeader>
                     <CardContent>
                       <div className="prose prose-invert max-w-none">
-                        <p className="text-muted-foreground whitespace-pre-line">
-                          {event.description_full}
+                        <p className="text-muted-foreground whitespace-pre-line mb-6">
+                          {event.description || 'Aucune description disponible.'}
                         </p>
+
+                        {event.problem_statement && (
+                           <>
+                             <h3 className="text-lg font-bold text-foreground mt-4 mb-2">Problème et Objectif</h3>
+                             <p className="text-muted-foreground whitespace-pre-line">
+                                {event.problem_statement}
+                             </p>
+                           </>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
 
-                  <div className="grid sm:grid-cols-3 gap-4">
+                  <div className="grid sm:grid-cols-2 gap-4">
                     <Card>
                       <CardContent className="pt-6">
                         <div className="flex items-center gap-3">
@@ -222,7 +231,7 @@ export default function EventDetails() {
                             <Users className="h-5 w-5 text-primary" />
                           </div>
                           <div>
-                            <p className="text-2xl font-bold">{event.stats.participants_count}</p>
+                            <p className="text-2xl font-bold">{event.stats?.participants || 0}</p>
                             <p className="text-sm text-muted-foreground">Participants</p>
                           </div>
                         </div>
@@ -236,24 +245,8 @@ export default function EventDetails() {
                             <Upload className="h-5 w-5 text-secondary" />
                           </div>
                           <div>
-                            <p className="text-2xl font-bold">{event.stats.submissions_count}</p>
+                            <p className="text-2xl font-bold">{event.stats?.total_submissions || 0}</p>
                             <p className="text-sm text-muted-foreground">Soumissions</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card>
-                      <CardContent className="pt-6">
-                        <div className="flex items-center gap-3">
-                          <div className="p-3 rounded-lg bg-warning/10">
-                            <Trophy className="h-5 w-5 text-warning" />
-                          </div>
-                          <div>
-                            <p className="text-2xl font-bold font-mono">
-                              {event.stats.best_score.toFixed(3)}
-                            </p>
-                            <p className="text-sm text-muted-foreground">Meilleur score</p>
                           </div>
                         </div>
                       </CardContent>
@@ -265,36 +258,27 @@ export default function EventDetails() {
                 <TabsContent value="data" className="space-y-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Informations sur le Dataset</CardTitle>
+                      <CardTitle>Description des Données</CardTitle>
                       <CardDescription>
-                        Détails sur les données d'entraînement et de test
+                        Détails sur les données d'entraînement et de test fournis pour cette compétition.
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <div className="p-4 rounded-lg bg-muted/50">
-                          <p className="text-sm text-muted-foreground mb-1">Données d'entraînement</p>
-                          <p className="font-semibold">{event.dataset_info.train_size}</p>
-                        </div>
-                        <div className="p-4 rounded-lg bg-muted/50">
-                          <p className="text-sm text-muted-foreground mb-1">Données de test</p>
-                          <p className="font-semibold">{event.dataset_info.test_size}</p>
-                        </div>
-                        <div className="p-4 rounded-lg bg-muted/50">
-                          <p className="text-sm text-muted-foreground mb-1">Caractéristiques</p>
-                          <p className="font-semibold">{event.dataset_info.features}</p>
-                        </div>
-                        <div className="p-4 rounded-lg bg-muted/50">
-                          <p className="text-sm text-muted-foreground mb-1">Variable cible</p>
-                          <p className="font-semibold">{event.dataset_info.target}</p>
-                        </div>
-                      </div>
+                       <p className="text-muted-foreground whitespace-pre-line">
+                          {event.data_description || 'La description des données n\'est pas encore spécifiée pour cette compétition.'}
+                       </p>
 
                       {event.my_participation?.is_joined && event.status !== 'finished' && (
-                        <Button className="w-full gap-2">
-                          <Download className="h-4 w-4" />
-                          Télécharger le dataset d'entraînement
-                        </Button>
+                        <div className="grid sm:grid-cols-2 gap-4 mt-6">
+                           <Button variant="outline" className="w-full gap-2" disabled={!event.downloads?.train_dataset}>
+                             <Download className="h-4 w-4" />
+                             Dataset Entraînement
+                           </Button>
+                           <Button variant="outline" className="w-full gap-2" disabled={!event.downloads?.sample_submission}>
+                             <Download className="h-4 w-4" />
+                             Exemple de soumission
+                           </Button>
+                        </div>
                       )}
                     </CardContent>
                   </Card>
@@ -306,25 +290,29 @@ export default function EventDetails() {
                     <CardHeader>
                       <CardTitle>Métriques d'évaluation</CardTitle>
                       <CardDescription>
-                        Critères utilisés pour évaluer vos modèles
+                        {event.evaluation_description || 'Critères utilisés pour évaluer vos modèles et construire le classement.'}
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {event.metrics.map((metric) => (
-                        <div 
-                          key={metric.name} 
-                          className={`p-4 rounded-lg border ${metric.is_primary ? 'border-primary bg-primary/5' : 'border-border'}`}
-                        >
-                          <div className="flex items-center justify-between mb-2">
+                      {event.metrics?.primary && (
+                        <div className="p-4 rounded-lg border border-primary bg-primary/5">
+                          <div className="flex items-center justify-between mb-1">
                             <div className="flex items-center gap-2">
-                              <span className="font-semibold capitalize">{metric.name.replace('_', ' ')}</span>
-                              {metric.is_primary && (
-                                <Badge className="text-xs">Principal</Badge>
-                              )}
+                              <span className="font-semibold capitalize">{event.metrics.primary.replace('_', ' ')}</span>
+                              <Badge className="text-xs">Principal</Badge>
                             </div>
-                            <span className="text-sm text-muted-foreground">
-                              Poids: {metric.weight}
-                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground mt-2">
+                             Métrique affichée : {event.metrics.info?.label} ({event.metrics.info?.higher_is_better ? 'Plus grand est meilleur' : 'Plus petit est meilleur'})
+                          </p>
+                        </div>
+                      )}
+
+                      {event.metrics?.secondary?.map((metric: string) => (
+                        <div key={metric} className="p-4 rounded-lg border border-border">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold capitalize">{metric.replace('_', ' ')}</span>
+                            <Badge variant="secondary" className="text-xs">Secondaire</Badge>
                           </div>
                         </div>
                       ))}
@@ -339,36 +327,46 @@ export default function EventDetails() {
                       <CardTitle>Règlement de la compétition</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <div className="p-4 rounded-lg bg-muted/50">
-                          <p className="text-sm text-muted-foreground mb-1">Soumissions par jour</p>
-                          <p className="font-semibold">{event.rules.max_submissions_per_day}</p>
-                        </div>
-                        <div className="p-4 rounded-lg bg-muted/50">
-                          <p className="text-sm text-muted-foreground mb-1">Soumissions totales</p>
-                          <p className="font-semibold">{event.rules.max_submissions_total}</p>
-                        </div>
-                        <div className="p-4 rounded-lg bg-muted/50">
-                          <p className="text-sm text-muted-foreground mb-1">Taille max fichier</p>
-                          <p className="font-semibold">{event.rules.max_file_size_mb} MB</p>
-                        </div>
-                        <div className="p-4 rounded-lg bg-muted/50">
-                          <p className="text-sm text-muted-foreground mb-1">Timeout évaluation</p>
-                          <p className="font-semibold">{event.rules.timeout_minutes} min</p>
-                        </div>
+                      <div className="prose prose-invert max-w-none mb-6">
+                        <p className="text-muted-foreground whitespace-pre-line">
+                           {event.rules || 'Aucun règlement spécifique n\'est mentionné.'}
+                        </p>
                       </div>
 
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-2">Formats acceptés</p>
-                        <div className="flex flex-wrap gap-2">
-                          {event.rules.allowed_formats.map((format) => (
-                            <Badge key={format} variant="outline">
-                              <FileCode className="mr-1 h-3 w-3" />
-                              {format}
-                            </Badge>
-                          ))}
+                      {event.config && (
+                        <div className="grid sm:grid-cols-2 gap-4 border-t border-border pt-6">
+                          <div className="p-4 rounded-lg bg-muted/50">
+                            <p className="text-sm text-muted-foreground mb-1">Soumissions par jour</p>
+                            <p className="font-semibold">{event.config.max_submissions_per_day || 'Illimité'}</p>
+                          </div>
+                          <div className="p-4 rounded-lg bg-muted/50">
+                            <p className="text-sm text-muted-foreground mb-1">Soumissions totales</p>
+                            <p className="font-semibold">{event.config.max_submissions_total || 'Illimité'}</p>
+                          </div>
+                          <div className="p-4 rounded-lg bg-muted/50">
+                            <p className="text-sm text-muted-foreground mb-1">Taille max fichier</p>
+                            <p className="font-semibold">{event.config.max_file_size_mb || '?'} MB</p>
+                          </div>
+                          <div className="p-4 rounded-lg bg-muted/50">
+                            <p className="text-sm text-muted-foreground mb-1">Timeout évaluation</p>
+                            <p className="font-semibold">{event.config.execution_timeout_seconds || '?'} sec</p>
+                          </div>
                         </div>
-                      </div>
+                      )}
+
+                      {event.config?.allowed_formats && (
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-2">Formats acceptés</p>
+                          <div className="flex flex-wrap gap-2">
+                            {event.config.allowed_formats.map((format: string) => (
+                              <Badge key={format} variant="outline">
+                                <FileCode className="mr-1 h-3 w-3" />
+                                {format}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -378,8 +376,43 @@ export default function EventDetails() {
                   <LeaderboardTable 
                     entries={leaderboard} 
                     currentUserId={user?.id}
-                    metricName={event.metrics.find(m => m.is_primary)?.name || 'Score'}
+                    metricName={primaryMetricLabel}
                   />
+                </TabsContent>
+
+                {/* Participants Tab */}
+                <TabsContent value="participants" className="space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {leaderboard.length > 0 ? (
+                      leaderboard.map((participant) => (
+                        <Card key={participant.user_id} className="overflow-hidden bg-muted/20 border-border/50 hover:bg-muted/30 transition-colors">
+                          <CardContent className="p-4 flex items-center gap-4">
+                            <Avatar className="h-12 w-12 border-2 border-primary/20">
+                              <AvatarFallback className="bg-primary/10 text-primary">
+                                {participant.user_name.charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-grow min-w-0">
+                              <p className="font-semibold truncate text-foreground">
+                                {participant.user_name}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Participant
+                              </p>
+                            </div>
+                            {participant.user_id === user?.id && (
+                              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">Moi</Badge>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))
+                    ) : (
+                      <div className="col-span-full py-12 text-center text-muted-foreground border-2 border-dashed border-border rounded-xl">
+                        <Users className="h-12 w-12 mx-auto mb-4 opacity-20" />
+                        <p>Aucun participant inscrit pour le moment.</p>
+                      </div>
+                    )}
+                  </div>
                 </TabsContent>
               </Tabs>
             </div>
@@ -413,14 +446,14 @@ export default function EventDetails() {
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span className="text-muted-foreground">Début:</span>
                       <span className="font-medium">
-                        {format(new Date(event.start_date), 'dd MMM yyyy', { locale: fr })}
+                        {format(startDate, 'dd MMM yyyy', { locale: fr })}
                       </span>
                     </div>
                     <div className="flex items-center gap-3 text-sm">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span className="text-muted-foreground">Fin:</span>
                       <span className="font-medium">
-                        {format(new Date(event.end_date), 'dd MMM yyyy', { locale: fr })}
+                        {format(endDate, 'dd MMM yyyy', { locale: fr })}
                       </span>
                     </div>
                   </div>
@@ -437,36 +470,38 @@ export default function EventDetails() {
                             </Link>
                           </Button>
                           
-                          {/* My Stats */}
-                          <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 space-y-3">
-                            <p className="font-semibold text-sm">Mes statistiques</p>
-                            <div className="grid grid-cols-2 gap-4 text-center">
-                              <div>
-                                <p className="text-2xl font-bold text-primary">
-                                  #{event.my_participation.my_rank || '-'}
-                                </p>
-                                <p className="text-xs text-muted-foreground">Rang</p>
+                          {/* My Stats - Placeholder if backend doesn't supply it */}
+                          {event.my_participation.my_rank != null && (
+                            <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 space-y-3">
+                              <p className="font-semibold text-sm">Mes statistiques</p>
+                              <div className="grid grid-cols-2 gap-4 text-center">
+                                <div>
+                                  <p className="text-2xl font-bold text-primary">
+                                    #{event.my_participation.my_rank || '-'}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">Rang</p>
+                                </div>
+                                <div>
+                                  <p className="text-2xl font-bold font-mono">
+                                    {event.my_participation.my_best_score?.toFixed(3) || '-'}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">Meilleur score</p>
+                                </div>
                               </div>
-                              <div>
-                                <p className="text-2xl font-bold font-mono">
-                                  {event.my_participation.my_best_score?.toFixed(3) || '-'}
-                                </p>
-                                <p className="text-xs text-muted-foreground">Meilleur score</p>
+                              <div className="pt-2 border-t border-border">
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-muted-foreground">Soumissions</span>
+                                  <span>
+                                    {event.my_participation.my_submissions_count || 0} / {event.config?.max_submissions_total || '∞'}
+                                  </span>
+                                </div>
+                                <Progress 
+                                  value={event.config?.max_submissions_total ? ((event.my_participation.my_submissions_count || 0) / event.config.max_submissions_total) * 100 : 0} 
+                                  className="mt-2 h-2"
+                                />
                               </div>
                             </div>
-                            <div className="pt-2 border-t border-border">
-                              <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Soumissions</span>
-                                <span>
-                                  {event.my_participation.my_submissions_count} / {event.rules.max_submissions_total}
-                                </span>
-                              </div>
-                              <Progress 
-                                value={(event.my_participation.my_submissions_count / event.rules.max_submissions_total) * 100} 
-                                className="mt-2 h-2"
-                              />
-                            </div>
-                          </div>
+                          )}
                         </div>
                       ) : (
                         <Button 
@@ -475,17 +510,17 @@ export default function EventDetails() {
                           onClick={handleJoin}
                           disabled={isJoining}
                         >
-                          {isJoining ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
-                              Inscription...
-                            </>
-                          ) : (
-                            <>
-                              <Play className="h-4 w-4" />
-                              Rejoindre l'événement
-                            </>
-                          )}
+                           {isJoining ? (
+                             <>
+                               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
+                               Inscription...
+                             </>
+                           ) : (
+                             <>
+                               <Play className="h-4 w-4" />
+                               Rejoindre l'événement
+                             </>
+                           )}
                         </Button>
                       )}
                     </>
@@ -496,8 +531,7 @@ export default function EventDetails() {
                       <Clock className="h-8 w-8 text-primary mx-auto mb-2" />
                       <p className="font-semibold">Bientôt disponible</p>
                       <p className="text-sm text-muted-foreground">
-                        Les inscriptions ouvrent le{' '}
-                        {format(new Date(event.registration_start), 'dd MMM', { locale: fr })}
+                        Les inscriptions ouvrent le {format(registrationDate, 'dd MMM', { locale: fr })}
                       </p>
                     </div>
                   )}
@@ -506,26 +540,19 @@ export default function EventDetails() {
                     <div className="text-center p-4 rounded-lg bg-muted/50">
                       <CheckCircle className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
                       <p className="font-semibold">Compétition terminée</p>
-                      <p className="text-sm text-muted-foreground">
-                        Consultez le classement final
-                      </p>
                     </div>
                   )}
 
-                  {/* Organizer */}
+                  {/* Built-in details */}
                   <div className="pt-4 border-t border-border">
-                    <p className="text-sm text-muted-foreground mb-3">Organisateur</p>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={event.organizer.avatar} />
-                        <AvatarFallback>{event.organizer.name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="font-medium">{event.organizer.name}</p>
-                        <p className="text-xs text-muted-foreground">Organisateur</p>
-                      </div>
+                    <p className="text-sm text-muted-foreground mb-3">Informations utiles</p>
+                    <div className="space-y-2 text-sm">
+                       <p className="flex justify-between"><span className="text-muted-foreground">Type:</span> <span>{themeLabels[event.task_type || 'other']}</span></p>
+                       <p className="flex justify-between"><span className="text-muted-foreground">Soumissions / jour:</span> <span>{event.config?.max_submissions_per_day || 'Illimité'}</span></p>
+                       <p className="flex justify-between"><span className="text-muted-foreground">Outil de métrique:</span> <span>{event.metrics?.info?.task || 'Aucun'}</span></p>
                     </div>
                   </div>
+                  
                 </CardContent>
               </Card>
             </div>

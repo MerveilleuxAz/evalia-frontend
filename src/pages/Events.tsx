@@ -40,12 +40,18 @@ export default function Events() {
   const sortedEvents = [...events].sort((a, b) => {
     switch (sortBy) {
       case 'popular':
-        return b.stats.participants_count - a.stats.participants_count;
+        const pA = a.stats?.participants || 0;
+        const pB = b.stats?.participants || 0;
+        return pB - pA;
       case 'ending-soon':
-        return new Date(a.end_date).getTime() - new Date(b.end_date).getTime();
+        const eA = a.end_date ? new Date(a.end_date).getTime() : 0;
+        const eB = b.end_date ? new Date(b.end_date).getTime() : 0;
+        return eA - eB;
       case 'recent':
       default:
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        const cA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const cB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return cB - cA;
     }
   });
 

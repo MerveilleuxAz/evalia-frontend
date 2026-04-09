@@ -73,7 +73,7 @@ export function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             {isAuthenticated ? (
               <>
-                {hasRole('organisateur') && (
+                {hasRole('utilisateur') && (
                   <Button asChild variant="outline" size="sm" className="gap-2">
                     <Link to="/events/create">
                       <Plus className="h-4 w-4" />
@@ -113,7 +113,7 @@ export function Navbar() {
                         Mon Profil
                       </Link>
                     </DropdownMenuItem>
-                    {hasRole('organisateur') && (
+                    {hasRole('utilisateur') && (
                       <DropdownMenuItem asChild>
                         <Link to="/my-events" className="cursor-pointer">
                           <Trophy className="mr-2 h-4 w-4" />
@@ -205,7 +205,7 @@ export function Navbar() {
                       >
                         Mon Profil
                       </Link>
-                      {hasRole('organisateur') && (
+                      {hasRole('utilisateur') && (
                         <Link
                           to="/my-events"
                           onClick={() => setIsOpen(false)}

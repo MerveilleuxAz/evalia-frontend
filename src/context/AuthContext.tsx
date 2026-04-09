@@ -1,96 +1,105 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import type { User, UserRole } from '@/types';
+import { api } from '@/lib/api';
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, role?: UserRole) => Promise<void>;
+  login: (username: string, password: string) => Promise<void>;
+  register: (name: string, username: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   hasRole: (role: UserRole) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Mock user data for demo
-const mockUsers: Record<string, User> = {
-  'participant@evalia.com': {
-    id: '1',
-    email: 'participant@evalia.com',
-    name: 'Jean Participant',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jean',
-    role: 'participant',
-    createdAt: '2025-01-01T00:00:00Z',
-  },
-  'organisateur@evalia.com': {
-    id: '2',
-    email: 'organisateur@evalia.com',
-    name: 'Marie Organisatrice',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Marie',
-    role: 'organisateur',
-    createdAt: '2024-06-15T00:00:00Z',
-  },
-  'admin@evalia.com': {
-    id: '3',
-    email: 'admin@evalia.com',
-    name: 'Admin EvalIA',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin',
-    role: 'administrateur',
-    createdAt: '2024-01-01T00:00:00Z',
-  },
-};
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
-  const login = useCallback(async (email: string, _password: string) => {
+  // Initialiser la session via localStorage
+  useEffect(() => {
+    const initAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const userData = await api.auth.me();
+          if (userData) {
+            setUser({
+              id: userData.id,
+              email: userData.email,
+              name: userData.name,
+              avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.username}`,
+              role: userData.is_admin ? 'administrateur' : 'utilisateur',
+              createdAt: userData.created_at,
+            });
+          } else {
+            localStorage.removeItem('token');
+          }
+        } catch (error) {
+          localStorage.removeItem('token');
+        }
+      }
+      setIsInitialLoading(false);
+    };
+
+    initAuth();
+  }, []);
+
+  const login = useCallback(async (username: string, password: string) => {
     setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    
-    const mockUser = mockUsers[email];
-    if (mockUser) {
-      setUser(mockUser);
-    } else {
-      // Create a new participant user for any email
-      setUser({
-        id: Date.now().toString(),
-        email,
-        name: email.split('@')[0],
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
-        role: 'participant',
-        createdAt: new Date().toISOString(),
-      });
+    try {
+      const res = await api.auth.login({ username, password });
+      
+      const token = res.token || res.access_token;
+      if (token) {
+        localStorage.setItem('token', token);
+        const userData = await api.auth.me();
+        if (userData) {
+          setUser({
+            id: userData.id,
+            email: userData.email,
+            name: userData.name,
+            avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.username}`,
+            role: userData.is_admin ? 'administrateur' : 'utilisateur',
+            createdAt: userData.created_at,
+          });
+        }
+      } else {
+        throw new Error("Token manquant dans la réponse.");
+      }
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
-  const register = useCallback(async (name: string, email: string, _password: string, role: UserRole = 'participant') => {
+  const register = useCallback(async (name: string, username: string, email: string, password: string) => {
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    
-    setUser({
-      id: Date.now().toString(),
-      email,
-      name,
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`,
-      role,
-      createdAt: new Date().toISOString(),
-    });
-    setIsLoading(false);
-  }, []);
+    try {
+      await api.auth.register({ name, username, email, password });
+      
+      // Auto-login après inscription
+      await login(username, password);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [login]);
 
   const logout = useCallback(() => {
+    localStorage.removeItem('token');
     setUser(null);
   }, []);
 
   const hasRole = useCallback((role: UserRole) => {
     if (!user) return false;
+    // L'administrateur satisfait tous les rôles
     if (user.role === 'administrateur') return true;
-    if (role === 'organisateur' && user.role === 'organisateur') return true;
-    return user.role === role;
+    // Si on demande le rôle administrateur mais que l'utilisateur ne l'est pas
+    if (role === 'administrateur') return false;
+    // Par défaut, un utilisateur connecté possède le rôle 'utilisateur'
+    return true;
   }, [user]);
 
   return (
@@ -105,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         hasRole,
       }}
     >
-      {children}
+      {!isInitialLoading && children}
     </AuthContext.Provider>
   );
 }
