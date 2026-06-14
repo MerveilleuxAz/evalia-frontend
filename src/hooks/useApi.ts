@@ -26,6 +26,13 @@ export const useCompetitions = (params?: { status?: string; task_type?: string; 
   });
 };
 
+export const useMyCompetitions = () => {
+  return useQuery({
+    queryKey: ['competitions', 'my'],
+    queryFn: () => api.competitions.getMyCompetitions(),
+  });
+};
+
 export const useCompetition = (id: string) => {
   return useQuery({
     queryKey: ['competitions', id],

@@ -43,7 +43,10 @@ async function fetchAPI(endpoint: string, options: RequestInit = {}) {
   }
   
   try {
-    return await response.json();
+    console.log("url :", url);
+    const data = await response.json();
+    console.log("data :", data);
+    return data;
   } catch (e) {
     return null;
   }
@@ -67,6 +70,7 @@ export const api = {
       const queryString = query.toString();
       return fetchAPI(`/competitions${queryString ? `?${queryString}` : ''}`);
     },
+    getMyCompetitions: () => fetchAPI(`/competitions/my`),
     getDetails: (id: string) => fetchAPI(`/competitions/${id}`),
     create: (formData: FormData) => fetchAPI('/competitions', { method: 'POST', body: formData }),
     join: (id: string) => fetchAPI(`/competitions/${id}/join`, { method: 'POST' }),

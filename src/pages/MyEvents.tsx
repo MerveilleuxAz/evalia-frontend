@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Users, BarChart3, Edit, Eye, MessageSquare, Calendar, Trophy } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { useCompetitions } from '@/hooks/useApi';
+import { useMyCompetitions } from '@/hooks/useApi';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -28,13 +28,8 @@ export default function MyEvents() {
         );
     }
 
-    const { data: competitionsData, isLoading } = useCompetitions();
-
-    // Filter events organized by the current user
-    // Since the API might not include all detailed organizer info in the list endpoint,
-    // we assume we just show recent events for now or filter locally.
-    const allEvents = competitionsData?.competitions || [];
-    const organizerEvents = allEvents.filter((e: any) => e.organizer?.id === user.id || e.organizer?.name === user.name || user.role === 'administrateur');
+    const { data: competitionsData, isLoading } = useMyCompetitions();
+    const organizerEvents = competitionsData?.competitions || [];
 
     if (isLoading) {
         return <div className="min-h-screen pt-32 text-center text-muted-foreground">Chargement de vos compétitions...</div>;
