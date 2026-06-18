@@ -16,7 +16,7 @@ const faqs = [
         questions: [
             {
                 q: "Comment rejoindre une compétition ?",
-                a: "Pour rejoindre une compétition, créez un compte ou connectez-vous, accédez à la page 'Événements', choisissez un challenge actif et cliquez sur le bouton 'Participer'. Vous aurez alors accès au dataset et pourrez soumettre vos résultats."
+                a: "Pour rejoindre une compétition, créez un compte ou connectez-vous, accédez à la page 'Compétitions', choisissez un challenge actif et cliquez sur le bouton 'Participer'. Vous aurez alors accès au dataset et pourrez soumettre vos résultats."
             },
             {
                 q: "Est-ce gratuit de participer ?",

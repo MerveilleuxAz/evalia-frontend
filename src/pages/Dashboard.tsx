@@ -104,7 +104,7 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{stats?.competitions_joined || 0}</p>
-                    <p className="text-sm text-muted-foreground">Événements rejoints</p>
+                    <p className="text-sm text-muted-foreground">Compétitions rejoints</p>
                   </div>
                 </div>
               </CardContent>
@@ -161,7 +161,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-display text-xl font-semibold">Mes compétitions</h2>
               <Button asChild variant="ghost" size="sm" className="gap-2">
-                <Link to="/events">
+                <Link to="/competitions">
                   Découvrir plus
                   <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -170,10 +170,10 @@ export default function Dashboard() {
 
             {recent_competitions.length > 0 ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {recent_competitions.map((event: any) => {
-                  const st = eventStatusLabels[event.status] || eventStatusLabels.archived;
+                {recent_competitions.map((competition: any) => {
+                  const st = eventStatusLabels[competition.status] || eventStatusLabels.archived;
                   return (
-                    <Card key={event.id} className="hover:border-primary/30 transition-all group border-border/60 bg-card/50">
+                    <Card key={competition.id} className="hover:border-primary/30 transition-all group border-border/60 bg-card/50">
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between mb-2">
                           <Badge className={`${st.className} gap-1 text-[10px] h-5`}>
@@ -182,8 +182,8 @@ export default function Dashboard() {
                           </Badge>
                         </div>
                         <CardTitle className="text-lg leading-tight">
-                          <Link to={`/events/${event.id}`} className="hover:text-primary transition-colors line-clamp-2">
-                            {event.title}
+                          <Link to={`/competitions/${competition.id}`} className="hover:text-primary transition-colors line-clamp-2">
+                            {competition.title}
                           </Link>
                         </CardTitle>
                       </CardHeader>
@@ -193,7 +193,7 @@ export default function Dashboard() {
                            <span>Inscrit récemment</span>
                         </div>
                         <Button asChild className="w-full gap-2" size="sm" variant="secondary">
-                          <Link to={`/events/${event.id}`}>
+                          <Link to={`/competitions/${competition.id}`}>
                             <Eye className="h-4 w-4" />
                             Accéder à l'arène
                           </Link>
@@ -209,7 +209,7 @@ export default function Dashboard() {
                   <Trophy className="h-12 w-12 text-muted-foreground/20 mx-auto mb-4" />
                   <p className="font-medium text-muted-foreground">Vous n'êtes inscrit à aucune compétition</p>
                   <Button asChild variant="link" className="mt-2">
-                    <Link to="/events">Parcourir les compétitions disponibles</Link>
+                    <Link to="/competitions">Parcourir les compétitions disponibles</Link>
                   </Button>
                 </CardContent>
               </Card>

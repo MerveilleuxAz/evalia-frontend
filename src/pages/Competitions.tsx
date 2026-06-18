@@ -10,17 +10,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { EventCard } from '@/components/events/EventCard';
-import { EventFilters } from '@/components/events/EventFilters';
-import { useEvents } from '@/context/EventContext';
-import type { EventFilters as EventFiltersType } from '@/types';
+import { CompetitionCard } from '@/components/competitions/CompetitionCard';
+import { CompetitionFilters } from '@/components/competitions/CompetitionFilters';
+import { useCompetitions } from '@/context/CompetitionContext';
+import type { CompetitionFilters as CompetitionFiltersType } from '@/types';
 
 type SortOption = 'recent' | 'popular' | 'ending-soon';
 type ViewMode = 'grid' | 'list';
 
-export default function Events() {
-  const { events, loading, fetchEvents } = useEvents();
-  const [filters, setFilters] = useState<EventFiltersType>({
+export default function Competitions() {
+  const { competitions, loading, fetchCompetitions } = useCompetitions();
+  const [filters, setFilters] = useState<CompetitionFiltersType>({
     status: 'all',
     difficulty: 'all',
     theme: 'all',
@@ -30,14 +30,14 @@ export default function Events() {
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
   useEffect(() => {
-    fetchEvents(filters);
-  }, [filters, fetchEvents]);
+    fetchCompetitions(filters);
+  }, [filters, fetchCompetitions]);
 
-  const handleFilterChange = (newFilters: Partial<EventFiltersType>) => {
+  const handleFilterChange = (newFilters: Partial<CompetitionFiltersType>) => {
     setFilters((prev) => ({ ...prev, ...newFilters }));
   };
 
-  const sortedEvents = [...events].sort((a, b) => {
+  const sortedEvents = [...competitions].sort((a, b) => {
     switch (sortBy) {
       case 'popular':
         const pA = a.stats?.participants || 0;
@@ -70,7 +70,7 @@ export default function Events() {
           >
             <Badge className="mb-4">Compétitions IA</Badge>
             <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
-              Événements de Compétition
+              Compétitions de Compétition
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl">
               Découvrez et participez aux challenges proposés par la communauté IFRI.
@@ -90,7 +90,7 @@ export default function Events() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="mb-8"
           >
-            <EventFilters filters={filters} onChange={handleFilterChange} />
+            <CompetitionFilters filters={filters} onChange={handleFilterChange} />
           </motion.div>
 
           {/* Toolbar */}
@@ -100,7 +100,7 @@ export default function Events() {
                 <span className="animate-pulse">Chargement...</span>
               ) : (
                 <span>
-                  <strong className="text-foreground">{events.length}</strong> événement(s) trouvé(s)
+                  <strong className="text-foreground">{competitions.length}</strong> compétition(s) trouvé(s)
                 </span>
               )}
             </p>
@@ -138,7 +138,7 @@ export default function Events() {
             </div>
           </div>
 
-          {/* Events Grid */}
+          {/* Competitions Grid */}
           {loading ? (
             <div className={`grid gap-6 ${viewMode === 'grid' ? 'md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
               {[...Array(6)].map((_, i) => (
@@ -155,8 +155,8 @@ export default function Events() {
             </div>
           ) : sortedEvents.length > 0 ? (
             <div className={`grid gap-6 ${viewMode === 'grid' ? 'md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}`}>
-              {sortedEvents.map((event, index) => (
-                <EventCard key={event.id} event={event} index={index} />
+              {sortedEvents.map((competition, index) => (
+                <CompetitionCard key={competition.id} competition={competition} index={index} />
               ))}
             </div>
           ) : (
@@ -166,7 +166,7 @@ export default function Events() {
               className="text-center py-20"
             >
               <Search className="h-16 w-16 text-muted-foreground/30 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Aucun événement trouvé</h3>
+              <h3 className="text-xl font-semibold mb-2">Aucun compétition trouvé</h3>
               <p className="text-muted-foreground mb-6">
                 Essayez de modifier vos filtres ou revenez plus tard.
               </p>

@@ -31,7 +31,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useAuth } from '@/context/AuthContext';
-import { useCompetitions, useCompetitionParticipants } from '@/hooks/useApi';
+import { useCompetitions, useCompetitionLeaderboard } from '@/hooks/useApi';
 
 const getRankIcon = (rank: number) => {
   switch (rank) {
@@ -62,27 +62,25 @@ const getRankBg = (rank: number) => {
 export default function Leaderboard() {
   const { user } = useAuth();
   const { data: competitionsData } = useCompetitions();
-  const events = competitionsData?.competitions || [];
+  const competitions = competitionsData?.competitions || [];
   
   const [selectedEventId, setSelectedEventId] = useState<string>('global');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { data: participantsData, isLoading: isParticipantsLoading } = useCompetitionParticipants(
+  const { data: leaderboardData, isLoading: isLeaderboardLoading } = useCompetitionLeaderboard(
     selectedEventId !== 'global' ? selectedEventId : ''
   );
 
-  // Map API participants to leaderboard entries. 
-  // Since the API doesn't provide scores yet, we mock the scores based on rank or set them to 0.
   const currentEntries = useMemo(() => {
     let entries: any[] = [];
-    if (selectedEventId !== 'global' && participantsData?.participants) {
-      entries = participantsData.participants.map((p: any, idx: number) => ({
-        rank: idx + 1,
-        user_id: p.id,
-        user_name: p.name || p.username,
-        user_avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.username}`,
-        best_score: 0,
-        submissions_count: 0,
+    if (selectedEventId !== 'global' && leaderboardData?.leaderboard) {
+      entries = leaderboardData.leaderboard.map((item: any) => ({
+        rank: item.rank,
+        user_id: item.user.id,
+        user_name: item.user.name || item.user.username,
+        user_avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${item.user.username || item.user.name}`,
+        best_score: item.score,
+        submissions_count: item.submissions_count || 0,
       }));
     }
     if (searchQuery.trim()) {
@@ -91,9 +89,9 @@ export default function Leaderboard() {
       );
     }
     return entries;
-  }, [selectedEventId, searchQuery, participantsData]);
+  }, [selectedEventId, searchQuery, leaderboardData]);
 
-  const selectedEvent = events.find((e: any) => e.id === selectedEventId);
+  const selectedEvent = competitions.find((e: any) => e.id === selectedEventId);
 
   const top3 = currentEntries.filter((e) => e.rank <= 3);
   const myEntry = currentEntries.find((e) => e.user_id === user?.id);
@@ -120,7 +118,7 @@ export default function Leaderboard() {
               Leaderboard
             </h1>
             <p className="text-muted-foreground">
-              Consultez les participants par événement. Les scores arriveront très prochainement dans l'API !
+              Consultez les participants par compétition. Les scores arriveront très prochainement dans l'API !
             </p>
           </motion.div>
         </div>
@@ -130,15 +128,15 @@ export default function Leaderboard() {
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <Select value={selectedEventId} onValueChange={setSelectedEventId}>
             <SelectTrigger className="w-full sm:w-72 bg-card/60">
-              <SelectValue placeholder="Sélectionner un événement" />
+              <SelectValue placeholder="Sélectionner un compétition" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="global">
                 🌐 Classement global (Bientôt)
               </SelectItem>
-              {events.map((event: any) => (
-                <SelectItem key={event.id} value={event.id}>
-                  {event.title}
+              {competitions.map((competition: any) => (
+                <SelectItem key={competition.id} value={competition.id}>
+                  {competition.title}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -165,13 +163,13 @@ export default function Leaderboard() {
               <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
                 <span className="flex items-center gap-1">
                   <Users className="h-3.5 w-3.5" />
-                  {participantsData?.count || 0} participants
+                  {leaderboardData?.count || 0} participants
                 </span>
               </div>
             </div>
             <Button asChild variant="outline" size="sm" className="gap-2">
-              <Link to={`/events/${selectedEvent.id}`}>
-                Voir l'événement
+              <Link to={`/competitions/${selectedEvent.id}`}>
+                Voir l'compétition
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
@@ -200,7 +198,9 @@ export default function Leaderboard() {
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-muted-foreground">Meilleur score</p>
-                  <p className="font-mono font-semibold text-lg">{myEntry.best_score.toFixed(4)}</p>
+                  <p className="font-mono font-semibold text-lg">
+                    {myEntry.best_score !== undefined && myEntry.best_score !== null ? myEntry.best_score.toFixed(4) : '—'}
+                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -254,7 +254,7 @@ export default function Leaderboard() {
           </motion.div>
         )}
 
-        {isParticipantsLoading ? (
+        {isLeaderboardLoading ? (
           <div className="text-center py-20 text-muted-foreground">Chargement des participants...</div>
         ) : currentEntries.length > 0 ? (
           <motion.div
@@ -313,8 +313,8 @@ export default function Leaderboard() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right text-muted-foreground">
-                        N/A
+                      <TableCell className="text-right text-foreground font-mono">
+                        {entry.best_score !== undefined && entry.best_score !== null ? entry.best_score.toFixed(4) : '—'}
                       </TableCell>
                     </motion.tr>
                   );
@@ -326,7 +326,7 @@ export default function Leaderboard() {
           <div className="text-center py-20">
             <Trophy className="h-16 w-16 text-muted-foreground/20 mx-auto mb-4" />
             <p className="text-muted-foreground text-lg">
-              {selectedEventId === 'global' ? 'Veuillez sélectionner un événement pour voir les participants.' : 'Aucun résultat trouvé'}
+              {selectedEventId === 'global' ? 'Veuillez sélectionner un compétition pour voir les participants.' : 'Aucun résultat trouvé'}
             </p>
           </div>
         )}

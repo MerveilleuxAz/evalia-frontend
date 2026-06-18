@@ -18,8 +18,8 @@ import { Button } from '@/components/ui/button';
 import { formatDistanceToNow, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-interface EventCardProps {
-  event: any;
+interface CompetitionCardProps {
+  competition: any;
   index?: number;
 }
 
@@ -40,19 +40,19 @@ const themeLabels: Record<string, string> = {
   other: 'Autre',
 };
 
-export function EventCard({ event, index = 0 }: EventCardProps) {
-  const status = statusConfig[event.status || 'archived'] || statusConfig.archived;
+export function CompetitionCard({ competition, index = 0 }: CompetitionCardProps) {
+  const status = statusConfig[competition.status || 'archived'] || statusConfig.archived;
   const StatusIcon = status.icon;
   
   const getTimeInfo = () => {
     try {
-      const endDate = event.calendar?.end_date ? new Date(event.calendar.end_date) : new Date();
-      const startDate = event.calendar?.start_date ? new Date(event.calendar.start_date) : new Date();
+      const endDate = competition.calendar?.end_date ? new Date(competition.calendar.end_date) : new Date();
+      const startDate = competition.calendar?.start_date ? new Date(competition.calendar.start_date) : new Date();
       
-      if (event.status === 'active') {
+      if (competition.status === 'active') {
         return `Se termine ${formatDistanceToNow(endDate, { addSuffix: true, locale: fr })}`;
       }
-      if (event.status === 'upcoming') {
+      if (competition.status === 'upcoming') {
         return `Commence ${formatDistanceToNow(startDate, { addSuffix: true, locale: fr })}`;
       }
       return `Terminé le ${format(endDate, 'dd MMM yyyy', { locale: fr })}`;
@@ -62,7 +62,7 @@ export function EventCard({ event, index = 0 }: EventCardProps) {
   };
 
   const getCTAButton = () => {
-    switch (event.status) {
+    switch (competition.status) {
       case 'upcoming':
         return (
           <Button variant="outline" size="sm" className="w-full gap-2 group">
@@ -71,7 +71,7 @@ export function EventCard({ event, index = 0 }: EventCardProps) {
           </Button>
         );
       case 'active':
-        if (event.my_participation?.is_joined) {
+        if (competition.my_participation?.is_joined) {
           return (
             <Button size="sm" variant="secondary" className="w-full gap-2 group">
               Déjà inscrit
@@ -102,13 +102,13 @@ export function EventCard({ event, index = 0 }: EventCardProps) {
       transition={{ duration: 0.4, delay: index * 0.1 }}
       className="group"
     >
-      <Link to={`/events/${event.id}`}>
+      <Link to={`/competitions/${competition.id}`}>
         <div className="relative h-full flex flex-col bg-card rounded-xl border border-border overflow-hidden transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1">
           {/* Banner Image */}
           <div className="relative h-40 flex-shrink-0 overflow-hidden">
             <img
-              src={event.banner_url || 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600&h=300&fit=crop'}
-              alt={event.title}
+              src={competition.banner_url || 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=600&h=300&fit=crop'}
+              alt={competition.title}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent" />
@@ -124,7 +124,7 @@ export function EventCard({ event, index = 0 }: EventCardProps) {
             {/* Theme Badge */}
             <div className="absolute top-3 right-3">
               <Badge variant="secondary" className="bg-card/90 backdrop-blur-md shadow-sm">
-                {themeLabels[event.task_type || 'other'] || 'Autre'}
+                {themeLabels[competition.task_type || 'other'] || 'Autre'}
               </Badge>
             </div>
           </div>
@@ -133,13 +133,13 @@ export function EventCard({ event, index = 0 }: EventCardProps) {
           <div className="p-4 flex flex-col flex-grow">
             {/* Title */}
             <h3 className="font-display font-semibold text-lg leading-tight line-clamp-2 mb-2 group-hover:text-primary transition-colors">
-              {event.title}
+              {competition.title}
             </h3>
 
             {/* Description Snippet */}
             <div className="mb-4 text-sm text-muted-foreground line-clamp-2">
               <AlignLeft className="inline-block h-4 w-4 mr-1 -mt-0.5 opacity-50" />
-              {event.description || event.problem_statement || 'Aucune description disponible pour cette compétition.'}
+              {competition.description || competition.problem_statement || 'Aucune description disponible pour cette compétition.'}
             </div>
 
             {/* Spacer to push stats to the bottom */}
@@ -155,17 +155,17 @@ export function EventCard({ event, index = 0 }: EventCardProps) {
             <div className="flex items-center justify-between pt-3 pb-4 border-t border-border">
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground" title="Participants">
                 <Users className="h-4 w-4" />
-                <span className="font-medium text-foreground">{event.stats?.participants || 0}</span>
+                <span className="font-medium text-foreground">{competition.stats?.participants || 0}</span>
               </div>
               
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground" title="Soumissions totales">
                 <Upload className="h-4 w-4" />
-                <span className="font-medium text-foreground">{event.stats?.total_submissions || 0}</span>
+                <span className="font-medium text-foreground">{competition.stats?.total_submissions || 0}</span>
               </div>
               
               <div className="flex items-center gap-1.5 text-sm" title="Métrique d'évaluation">
                 <Badge variant="outline" className="text-[10px] uppercase font-mono px-1.5 py-0">
-                  {event.metrics?.info?.label || event.metrics?.primary || 'Score'}
+                  {competition.metrics?.info?.label || competition.metrics?.primary || 'Score'}
                 </Badge>
               </div>
             </div>
@@ -177,7 +177,7 @@ export function EventCard({ event, index = 0 }: EventCardProps) {
           </div>
 
           {/* My Participation Indicator */}
-          {event.my_participation?.is_joined && (
+          {competition.my_participation?.is_joined && (
             <div className="absolute top-0 right-0 w-0 h-0 border-t-[40px] border-t-primary border-l-[40px] border-l-transparent z-10">
               <CheckCircle className="absolute -top-[32px] right-[4px] h-4 w-4 text-primary-foreground" />
             </div>

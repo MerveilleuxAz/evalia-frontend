@@ -31,9 +31,9 @@ const NotFound = () => {
             </Link>
           </Button>
           <Button asChild variant="outline" className="gap-2">
-            <Link to="/events">
+            <Link to="/competitions">
               <Search className="h-4 w-4" />
-              Explorer les événements
+              Explorer les compétitions
             </Link>
           </Button>
         </div>

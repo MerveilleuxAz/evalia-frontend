@@ -57,7 +57,11 @@ export const api = {
     login: (data: any) => fetchAPI('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
     register: (data: any) => fetchAPI('/auth/register', { method: 'POST', body: JSON.stringify(data) }),
     me: () => fetchAPI('/auth/me'),
+    updateMe: (data: any) => fetchAPI('/auth/me', { method: 'PUT', body: JSON.stringify(data) }),
     dashboard: () => fetchAPI('/auth/dashboard'),
+  },
+  user: {
+    dashboard: () => fetchAPI('/dashboard/me'),
   },
   competitions: {
     list: (params?: { status?: string; task_type?: string; page?: number; per_page?: number }) => {
@@ -66,15 +70,35 @@ export const api = {
       if (params?.task_type && params.task_type !== 'all') query.append('task_type', params.task_type);
       if (params?.page) query.append('page', params.page.toString());
       if (params?.per_page) query.append('per_page', params.per_page.toString());
-      
       const queryString = query.toString();
       return fetchAPI(`/competitions${queryString ? `?${queryString}` : ''}`);
     },
     getMyCompetitions: () => fetchAPI(`/competitions/my`),
     getDetails: (id: string) => fetchAPI(`/competitions/${id}`),
     create: (formData: FormData) => fetchAPI('/competitions', { method: 'POST', body: formData }),
+    update: (id: string, formData: FormData) => fetchAPI(`/competitions/${id}`, { method: 'PUT', body: formData }),
     join: (id: string) => fetchAPI(`/competitions/${id}/join`, { method: 'POST' }),
     leave: (id: string) => fetchAPI(`/competitions/${id}/leave`, { method: 'DELETE' }),
     participants: (id: string) => fetchAPI(`/competitions/${id}/participants`),
-  }
+    leaderboard: (id: string) => fetchAPI(`/competitions/${id}/leaderboard`),
+  },
+  eval: {
+    submit: (compId: string, formData: FormData) =>
+      fetchAPI(`/eval/${compId}/submit`, { method: 'POST', body: formData }),
+    mySubmissions: (compId: string) => fetchAPI(`/eval/${compId}/submissions`),
+    status: (submissionId: string) => fetchAPI(`/eval/status/${submissionId}`),
+    allTypes: () => fetchAPI('/eval/all-type'),
+  },
+  admin: {
+    users: () => fetchAPI('/admin/users'),
+    updateUser: (userId: string, data: any) =>
+      fetchAPI(`/admin/users/${userId}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    competitions: () => fetchAPI('/admin/competitions'),
+    updateCompetitionStatus: (id: string, status: string) =>
+      fetchAPI(`/competitions/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+    submissions: () => fetchAPI('/admin/submissions'),
+    system: () => fetchAPI('/admin/system'),
+    logs: () => fetchAPI('/admin/logs'),
+  },
 };
+

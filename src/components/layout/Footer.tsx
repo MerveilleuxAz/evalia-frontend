@@ -3,7 +3,7 @@ import { Github, Twitter, Linkedin, Mail } from 'lucide-react';
 
 const footerLinks = {
   plateforme: [
-    { name: 'Événements', href: '/events' },
+    { name: 'Compétitions', href: '/competitions' },
     { name: 'Leaderboard', href: '/leaderboard' },
     { name: 'Documentation', href: '/docs' },
     { name: 'API', href: '/api' },

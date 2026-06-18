@@ -24,8 +24,8 @@ const navItems = [
         icon: Users,
     },
     {
-        title: "Modération Événements",
-        href: "/admin/events",
+        title: "Modération Compétitions",
+        href: "/admin/competitions",
         icon: ShieldCheck,
     },
     {

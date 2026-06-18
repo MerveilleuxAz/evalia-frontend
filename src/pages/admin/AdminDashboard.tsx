@@ -6,8 +6,13 @@ import {
     Upload,
     Activity,
     TrendingUp,
-    AlertCircle
+    AlertCircle,
+    Server,
+    Cpu,
+    Database,
+    Loader2
 } from 'lucide-react';
+import { cn } from "@/lib/utils";
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -19,70 +24,81 @@ import {
     TableRow
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-
-const adminStats = [
-    {
-        title: "Total Utilisateurs",
-        value: "1,248",
-        change: "+12%",
-        icon: Users,
-        color: "text-blue-500",
-        bg: "bg-blue-500/10"
-    },
-    {
-        title: "Événements Actifs",
-        value: "14",
-        change: "+2",
-        icon: Trophy,
-        color: "text-green-500",
-        bg: "bg-green-500/10"
-    },
-    {
-        title: "Soumissions (24h)",
-        value: "342",
-        change: "+24%",
-        icon: Upload,
-        color: "text-primary",
-        bg: "bg-primary/10"
-    },
-    {
-        title: "Taux de Réussite",
-        value: "82.4%",
-        change: "+1.2%",
-        icon: Activity,
-        color: "text-amber-500",
-        bg: "bg-amber-500/10"
-    }
-];
-
-const recentActivity = [
-    {
-        id: 1,
-        type: "user_reg",
-        user: "Ousmane Drabo",
-        event: "Nouveau compte créé",
-        time: "Il y a 10 min",
-        status: "success"
-    },
-    {
-        id: 2,
-        type: "event_sub",
-        user: "Aïcha Touré",
-        event: "Soumission challenge 'Vision'",
-        time: "Il y a 25 min",
-        status: "pending"
-    },
-    {
-        id: 3,
-        type: "report",
-        user: "Système",
-        event: "Alerte : Pic de charge serveur",
-        time: "Il y a 1h",
-        status: "warning"
-    },
-];
+import {
+    useAdminUsers,
+    useAdminCompetitions,
+    useAdminSubmissions,
+    useAdminSystem
+} from '@/hooks/useApi';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 export default function AdminDashboard() {
+    const { data: usersData, isLoading: isLoadingUsers } = useAdminUsers();
+    const { data: compsData, isLoading: isLoadingComps } = useAdminCompetitions();
+    const { data: subsData, isLoading: isLoadingSubs } = useAdminSubmissions();
+    const { data: systemData, isLoading: isLoadingSystem } = useAdminSystem();
+
+    const totalUsers = usersData?.pagination?.total || 0;
+    const totalCompetitions = compsData?.pagination?.total || 0;
+    const totalSubmissions = subsData?.pagination?.total || 0;
+    
+    // Calcul du taux de réussite sur les soumissions
+    const submissionsList = subsData?.submissions || [];
+    const evaluatedSubs = submissionsList.filter((s: any) => s.status === 'evaluated' || s.status === 'completed');
+    const successRate = totalSubmissions > 0
+        ? ((evaluatedSubs.length / totalSubmissions) * 100).toFixed(1)
+        : '0.0';
+
+    const adminStats = [
+        {
+            title: "Total Utilisateurs",
+            value: totalUsers,
+            change: "Membres actifs",
+            icon: Users,
+            color: "text-blue-500",
+            bg: "bg-blue-500/10"
+        },
+        {
+            title: "Compétitions",
+            value: totalCompetitions,
+            change: "Créées",
+            icon: Trophy,
+            color: "text-green-500",
+            bg: "bg-green-500/10"
+        },
+        {
+            title: "Soumissions",
+            value: totalSubmissions,
+            change: "Modèles soumis",
+            icon: Upload,
+            color: "text-primary",
+            bg: "bg-primary/10"
+        },
+        {
+            title: "Taux de Réussite",
+            value: `${successRate}%`,
+            change: "Évaluations réussies",
+            icon: Activity,
+            color: "text-amber-500",
+            bg: "bg-amber-500/10"
+        }
+    ];
+
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'completed':
+            case 'evaluated':
+                return 'bg-success/10 text-success border-success/20';
+            case 'pending':
+                return 'bg-warning/10 text-warning border-warning/20';
+            case 'processing':
+                return 'bg-primary/10 text-primary border-primary/20';
+            default:
+                return 'bg-destructive/10 text-destructive border-destructive/20';
+        }
+    };
+
     return (
         <div className="flex min-h-screen bg-background pt-16">
             <AdminSidebar />
@@ -90,9 +106,10 @@ export default function AdminDashboard() {
                 <div className="max-w-7xl mx-auto space-y-8">
                     <header>
                         <h1 className="text-3xl font-display font-bold">Tableau de bord Administrateur</h1>
-                        <p className="text-muted-foreground mt-2">Bienvenue dans l'interface de gestion globale d'EvalIA.</p>
+                        <p className="text-muted-foreground mt-2">Supervision en temps réel des ressources et de l'activité globale.</p>
                     </header>
 
+                    {/* Stats Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         {adminStats.map((stat, i) => (
                             <motion.div
@@ -113,9 +130,7 @@ export default function AdminDashboard() {
                                     <CardContent>
                                         <div className="text-2xl font-bold">{stat.value}</div>
                                         <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                                            <TrendingUp className="h-3 w-3 text-green-500" />
-                                            <span className="text-green-500 font-medium">{stat.change}</span>
-                                            celui-ci ce mois
+                                            <span>{stat.change}</span>
                                         </p>
                                     </CardContent>
                                 </Card>
@@ -124,59 +139,130 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="grid lg:grid-cols-3 gap-8">
+                        {/* Recent Activity */}
                         <Card className="lg:col-span-2">
                             <CardHeader>
-                                <CardTitle>Activités Récentes</CardTitle>
+                                <CardTitle>Dernières soumissions de modèles</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="overflow-x-auto">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Utilisateur</TableHead>
-                                                <TableHead>Action</TableHead>
-                                                <TableHead>Date</TableHead>
-                                                <TableHead>Statut</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {recentActivity.map((activity) => (
-                                                <TableRow key={activity.id}>
-                                                    <TableCell className="font-medium">{activity.user}</TableCell>
-                                                    <TableCell>{activity.event}</TableCell>
-                                                    <TableCell className="text-muted-foreground text-sm">{activity.time}</TableCell>
-                                                    <TableCell>
-                                                        <Badge variant={activity.status === 'warning' ? 'destructive' : 'secondary'} className="capitalize">
-                                                            {activity.status}
-                                                        </Badge>
-                                                    </TableCell>
+                                {isLoadingSubs ? (
+                                    <div className="flex justify-center py-10">
+                                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                                    </div>
+                                ) : submissionsList.length > 0 ? (
+                                    <div className="overflow-x-auto">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Fichier / ID</TableHead>
+                                                    <TableHead>Type</TableHead>
+                                                    <TableHead>Date</TableHead>
+                                                    <TableHead>Statut</TableHead>
+                                                    <TableHead className="text-right">Score</TableHead>
                                                 </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </div>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {submissionsList.slice(0, 5).map((activity: any) => (
+                                                    <TableRow key={activity.id}>
+                                                        <TableCell className="font-mono text-sm max-w-[150px] truncate">
+                                                            {activity.model_path?.split('/').pop() || activity.id.substring(0, 8)}
+                                                        </TableCell>
+                                                        <TableCell className="capitalize text-xs">
+                                                            {activity.model_type}
+                                                        </TableCell>
+                                                        <TableCell className="text-muted-foreground text-sm">
+                                                            {activity.created_at ? format(new Date(activity.created_at), 'dd MMM HH:mm', { locale: fr }) : '—'}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <Badge variant="outline" className={cn("capitalize font-normal", getStatusColor(activity.status))}>
+                                                                {activity.status}
+                                                            </Badge>
+                                                        </TableCell>
+                                                        <TableCell className="text-right font-mono">
+                                                            {activity.score !== null && activity.score !== undefined ? activity.score.toFixed(4) : '—'}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-10 text-muted-foreground">
+                                        Aucune soumission récente.
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
 
+                        {/* System Resources */}
                         <Card>
                             <CardHeader>
-                                <CardTitle>Alertes Système</CardTitle>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Server className="h-5 w-5 text-primary" />
+                                    Ressources Système
+                                </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="flex gap-4 p-4 rounded-xl border border-warning/20 bg-warning/5">
-                                    <AlertCircle className="h-5 w-5 text-warning shrink-0" />
-                                    <div>
-                                        <h4 className="font-semibold text-sm">Base de données</h4>
-                                        <p className="text-xs text-muted-foreground mt-1">Optimisation des index recommandée pour les soumissions.</p>
+                                {isLoadingSystem ? (
+                                    <div className="flex justify-center py-10">
+                                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
                                     </div>
-                                </div>
-                                <div className="flex gap-4 p-4 rounded-xl border border-primary/20 bg-primary/5">
-                                    <TrendingUp className="h-5 w-5 text-primary shrink-0" />
-                                    <div>
-                                        <h4 className="font-semibold text-sm">Trafic Utilisateurs</h4>
-                                        <p className="text-xs text-muted-foreground mt-1">Nouveau record d'utilisateurs simultanés (312).</p>
-                                    </div>
-                                </div>
+                                ) : systemData ? (
+                                    <>
+                                        {/* CPU load */}
+                                        <div className="flex items-start gap-3 p-3 rounded-xl border border-border/60 bg-muted/20">
+                                            <Cpu className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                                            <div className="flex-1">
+                                                <h4 className="font-semibold text-sm">Charge CPU (Load Avg)</h4>
+                                                <div className="text-xs text-muted-foreground mt-1 flex justify-between">
+                                                    <span>1 min: {systemData.load_average?.["1m"]?.toFixed(2) || 'N/A'}</span>
+                                                    <span>5 min: {systemData.load_average?.["5m"]?.toFixed(2) || 'N/A'}</span>
+                                                    <span>15 min: {systemData.load_average?.["15m"]?.toFixed(2) || 'N/A'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Memory */}
+                                        <div className="flex items-start gap-3 p-3 rounded-xl border border-border/60 bg-muted/20">
+                                            <Database className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+                                            <div className="flex-1">
+                                                <h4 className="font-semibold text-sm">Mémoire système</h4>
+                                                <div className="text-xs text-muted-foreground mt-1">
+                                                    <div>Total : {systemData.memory?.total || 'N/A'}</div>
+                                                    <div>Disponible : {systemData.memory?.available || 'N/A'}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Docker Containers */}
+                                        <div className="pt-2">
+                                            <h4 className="font-semibold text-sm mb-3">Conteneurs Docker</h4>
+                                            {Array.isArray(systemData.containers) ? (
+                                                <div className="space-y-2">
+                                                    {systemData.containers.map((c: any) => (
+                                                        <div key={c.id} className="flex items-center justify-between p-2 rounded-lg border border-border/40 text-xs">
+                                                            <div className="font-medium truncate max-w-[120px]">{c.name}</div>
+                                                            <div className="text-muted-foreground truncate max-w-[100px]">{c.image.split(':')[0]}</div>
+                                                            <Badge variant={c.status === 'running' ? 'outline' : 'secondary'} className={cn(
+                                                                c.status === 'running' ? 'bg-success/10 text-success border-success/20' : 'bg-muted text-muted-foreground'
+                                                            )}>
+                                                                {c.status}
+                                                            </Badge>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <p className="text-xs text-muted-foreground italic">
+                                                    {systemData.containers?.error || 'Docker non connecté ou non configuré.'}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <p className="text-center text-sm text-muted-foreground py-6">
+                                        Impossible de charger l'état système.
+                                    </p>
+                                )}
                             </CardContent>
                         </Card>
                     </div>
@@ -184,8 +270,4 @@ export default function AdminDashboard() {
             </main>
         </div>
     );
-}
-
-function cn(...classes: string[]) {
-    return classes.filter(Boolean).join(' ');
 }

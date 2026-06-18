@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { EventCard } from '@/components/events/EventCard';
+import { CompetitionCard } from '@/components/competitions/CompetitionCard';
 import { useCompetitions } from '@/hooks/useApi';
 
 const features = [
@@ -49,7 +49,7 @@ const stats = [
   { value: '500+', label: 'Participants actifs' },
   { value: '25+', label: 'Compétitions terminées' },
   { value: '10K+', label: 'Modèles soumis' },
-  { value: '15', label: 'Événements actifs' },
+  { value: '15', label: 'Compétitions actifs' },
 ];
 
 export default function Home() {
@@ -68,8 +68,8 @@ export default function Home() {
         <div className="absolute inset-0 bg-[#0B0F19]" />
         
         {/* Glow meshes */}
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[128px] pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-secondary/20 rounded-full blur-[128px] pointer-events-none" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[128px] pointer-competitions-none" />
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-secondary/20 rounded-full blur-[128px] pointer-competitions-none" />
         
         {/* Interactive Grid Pattern */}
         <div 
@@ -127,7 +127,7 @@ export default function Home() {
                 className="flex flex-col sm:flex-row gap-4"
               >
                 <Button asChild size="xl" className="relative group h-14 px-8 text-base font-bold bg-primary hover:bg-primary/90 rounded-full overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_-10px_rgba(59,130,246,0.5)] border border-primary/50">
-                  <Link to="/events" className="flex items-center gap-2">
+                  <Link to="/competitions" className="flex items-center gap-2">
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-[200%] group-hover:translate-x-[200%] transition-transform duration-1000" />
                     <span>Démarrer l'aventure</span>
                     <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -339,7 +339,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Active Events Section */}
+      {/* Active Competitions Section */}
       {activeEvents.length > 0 && (
         <section className="py-24 bg-card/30">
           <div className="container mx-auto px-4">
@@ -350,11 +350,11 @@ export default function Home() {
                   En cours
                 </Badge>
                 <h2 className="font-display text-3xl font-bold">
-                  Événements actifs
+                  Compétitions actifs
                 </h2>
               </div>
               <Button asChild variant="ghost" className="gap-2">
-                <Link to="/events?status=active">
+                <Link to="/competitions?status=active">
                   Voir tout
                   <ChevronRight className="h-4 w-4" />
                 </Link>
@@ -362,15 +362,15 @@ export default function Home() {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {activeEvents.map((event, index) => (
-                <EventCard key={event.id} event={event} index={index} />
+              {activeEvents.map((competition, index) => (
+                <CompetitionCard key={competition.id} competition={competition} index={index} />
               ))}
             </div>
           </div>
         </section>
       )}
 
-      {/* Upcoming Events Section */}
+      {/* Upcoming Competitions Section */}
       {upcomingEvents.length > 0 && (
         <section className="py-24">
           <div className="container mx-auto px-4">
@@ -381,11 +381,11 @@ export default function Home() {
                   Bientôt
                 </Badge>
                 <h2 className="font-display text-3xl font-bold">
-                  Événements à venir
+                  Compétitions à venir
                 </h2>
               </div>
               <Button asChild variant="ghost" className="gap-2">
-                <Link to="/events?status=upcoming">
+                <Link to="/competitions?status=upcoming">
                   Voir tout
                   <ChevronRight className="h-4 w-4" />
                 </Link>
@@ -393,8 +393,8 @@ export default function Home() {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {upcomingEvents.map((event, index) => (
-                <EventCard key={event.id} event={event} index={index} />
+              {upcomingEvents.map((competition, index) => (
+                <CompetitionCard key={competition.id} competition={competition} index={index} />
               ))}
             </div>
           </div>

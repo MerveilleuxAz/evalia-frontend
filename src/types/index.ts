@@ -1,6 +1,6 @@
-export type EventStatus = 'upcoming' | 'active' | 'finished' | 'archived';
-export type EventDifficulty = 'beginner' | 'intermediate' | 'advanced';
-export type EventTheme = 'classification' | 'regression' | 'nlp' | 'vision' | 'other';
+export type CompetitionStatus = 'upcoming' | 'active' | 'finished' | 'archived';
+export type CompetitionDifficulty = 'beginner' | 'intermediate' | 'advanced';
+export type CompetitionTheme = 'classification' | 'regression' | 'nlp' | 'vision' | 'other';
 export type UserRole = 'utilisateur' | 'administrateur';
 
 export interface User {
@@ -20,6 +20,7 @@ export interface Organizer {
 
 export interface MyParticipation {
   is_joined: boolean;
+  is_owner?: boolean;
   my_best_score?: number;
   my_rank?: number;
   my_submissions_count: number;
@@ -64,7 +65,7 @@ export interface ApiDownloads {
   sample_submission?: string | null;
 }
 
-export interface Event {
+export interface Competition {
   id: string;
   title: string;
   slug: string;
@@ -73,9 +74,9 @@ export interface Event {
   data_description: string | null;
   evaluation_description: string | null;
   rules: string | null;
-  status: EventStatus;
-  task_type: EventTheme;
-  difficulty?: EventDifficulty;
+  status: CompetitionStatus;
+  task_type: CompetitionTheme;
+  difficulty?: CompetitionDifficulty;
   banner_url: string | null;
   banner_image?: string | null;
   organizer?: Organizer;
@@ -97,8 +98,8 @@ export interface Event {
 
 export interface Submission {
   id: string;
-  event_id: string;
-  event_title: string;
+  competition_id: string;
+  competition_title: string;
   user_id: string;
   user_name: string;
   file_name: string;
@@ -123,9 +124,9 @@ export interface LeaderboardEntry {
   metrics?: Record<string, number>;
 }
 
-export interface EventFilters {
-  status: EventStatus | 'all';
-  difficulty: EventDifficulty | 'all';
-  theme: EventTheme | 'all';
+export interface CompetitionFilters {
+  status: CompetitionStatus | 'all';
+  difficulty: CompetitionDifficulty | 'all';
+  theme: CompetitionTheme | 'all';
   search: string;
 }

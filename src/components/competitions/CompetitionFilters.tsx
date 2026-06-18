@@ -10,11 +10,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { EventFilters as EventFiltersType } from '@/types';
+import type { CompetitionFilters as CompetitionFiltersType } from '@/types';
 
-interface EventFiltersProps {
-  filters: EventFiltersType;
-  onChange: (filters: Partial<EventFiltersType>) => void;
+interface CompetitionFiltersProps {
+  filters: CompetitionFiltersType;
+  onChange: (filters: Partial<CompetitionFiltersType>) => void;
 }
 
 const statusOptions = [
@@ -41,7 +41,7 @@ const themeOptions = [
   { value: 'other', label: 'Autre' },
 ];
 
-export function EventFilters({ filters, onChange }: EventFiltersProps) {
+export function CompetitionFilters({ filters, onChange }: CompetitionFiltersProps) {
   const hasActiveFilters = 
     filters.status !== 'all' || 
     filters.difficulty !== 'all' || 
@@ -70,7 +70,7 @@ export function EventFilters({ filters, onChange }: EventFiltersProps) {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Rechercher un événement..."
+          placeholder="Rechercher un compétition..."
           value={filters.search}
           onChange={(e) => onChange({ search: e.target.value })}
           className="pl-10 bg-card"
@@ -89,7 +89,7 @@ export function EventFilters({ filters, onChange }: EventFiltersProps) {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Select
           value={filters.status}
-          onValueChange={(value) => onChange({ status: value as EventFiltersType['status'] })}
+          onValueChange={(value) => onChange({ status: value as CompetitionFiltersType['status'] })}
         >
           <SelectTrigger className="bg-card">
             <SelectValue placeholder="Statut" />
@@ -105,7 +105,7 @@ export function EventFilters({ filters, onChange }: EventFiltersProps) {
 
         <Select
           value={filters.difficulty}
-          onValueChange={(value) => onChange({ difficulty: value as EventFiltersType['difficulty'] })}
+          onValueChange={(value) => onChange({ difficulty: value as CompetitionFiltersType['difficulty'] })}
         >
           <SelectTrigger className="bg-card">
             <SelectValue placeholder="Difficulté" />
@@ -121,7 +121,7 @@ export function EventFilters({ filters, onChange }: EventFiltersProps) {
 
         <Select
           value={filters.theme}
-          onValueChange={(value) => onChange({ theme: value as EventFiltersType['theme'] })}
+          onValueChange={(value) => onChange({ theme: value as CompetitionFiltersType['theme'] })}
         >
           <SelectTrigger className="bg-card">
             <SelectValue placeholder="Thématique" />

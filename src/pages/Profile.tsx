@@ -1,30 +1,73 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { User, Mail, Calendar, Shield, Edit3, Settings, LogOut, Trophy, Target, Zap } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { User, Mail, Calendar, Shield, Edit3, Settings, LogOut, Trophy, Target, Zap, Check, X, KeyRound } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-
-const fadeInUp = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.5 },
-};
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
 export default function Profile() {
-    const { user, logout } = useAuth();
+    const { user, logout, updateProfile } = useAuth();
+    const { toast } = useToast();
+
+    const [isEditing, setIsEditing] = useState(false);
+    const [name, setName] = useState(user?.name || '');
+    const [email, setEmail] = useState(user?.email || '');
+    const [password, setPassword] = useState('');
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
 
     if (!user) return null;
 
     const formatDate = (dateString: string) => {
+        if (!dateString) return '—';
         return new Date(dateString).toLocaleDateString('fr-FR', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
         });
+    };
+
+    const handleSave = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSaving(true);
+        try {
+            const payload: any = { name, email };
+            if (password) {
+                if (!currentPassword) {
+                    toast({
+                        title: 'Changement de mot de passe',
+                        description: 'Le mot de passe actuel est requis pour le modifier.',
+                        variant: 'destructive',
+                    });
+                    setIsSaving(false);
+                    return;
+                }
+                payload.password = password;
+                payload.current_password = currentPassword;
+            }
+            await updateProfile(payload);
+            toast({
+                title: 'Profil mis à jour',
+                description: 'Vos modifications ont été enregistrées avec succès.',
+            });
+            setIsEditing(false);
+            setPassword('');
+            setCurrentPassword('');
+        } catch (error: any) {
+            toast({
+                title: 'Erreur',
+                description: error.message || 'Une erreur est survenue lors de la mise à jour.',
+                variant: 'destructive',
+            });
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
@@ -34,10 +77,12 @@ export default function Profile() {
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
-                    className="mb-8"
+                    className="mb-8 flex items-center justify-between"
                 >
-                    <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">Mon Profil</h1>
-                    <p className="text-muted-foreground">Gérez vos informations personnelles et votre compte.</p>
+                    <div>
+                        <h1 className="text-3xl md:text-4xl font-display font-bold mb-2">Mon Profil</h1>
+                        <p className="text-muted-foreground">Gérez vos informations personnelles et votre compte.</p>
+                    </div>
                 </motion.div>
 
                 <div className="grid md:grid-cols-3 gap-8">
@@ -78,11 +123,22 @@ export default function Profile() {
                                 </div>
 
                                 <div className="mt-6 flex flex-col gap-2">
-                                    <Button variant="outline" className="w-full gap-2">
-                                        <Edit3 className="h-4 w-4" />
-                                        Modifier le profil
-                                    </Button>
-                                    <Button variant="ghost" className="w-full gap-2 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={logout}>
+                                    {!isEditing ? (
+                                        <Button variant="outline" className="w-full gap-2" onClick={() => setIsEditing(true)}>
+                                            <Edit3 className="h-4 w-4" />
+                                            Modifier le profil
+                                        </Button>
+                                    ) : (
+                                        <Button variant="ghost" className="w-full gap-2" onClick={() => setIsEditing(false)}>
+                                            <X className="h-4 w-4" />
+                                            Annuler
+                                        </Button>
+                                    )}
+                                    <Button
+                                        variant="ghost"
+                                        className="w-full gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                        onClick={logout}
+                                    >
                                         <LogOut className="h-4 w-4" />
                                         Se déconnecter
                                     </Button>
@@ -112,97 +168,187 @@ export default function Profile() {
                         transition={{ duration: 0.6, delay: 0.4 }}
                         className="md:col-span-2 space-y-6"
                     >
-                        {/* Stats Cards (Participant perspective) */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <Card className="bg-card/50 border-border/60">
-                                <CardContent className="p-6 flex items-center gap-4">
-                                    <div className="p-3 bg-primary/10 rounded-lg">
-                                        <Trophy className="h-6 w-6 text-primary" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">Compétitions</p>
-                                        <p className="text-2xl font-bold">0</p>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                            <Card className="bg-card/50 border-border/60">
-                                <CardContent className="p-6 flex items-center gap-4">
-                                    <div className="p-3 bg-secondary/10 rounded-lg">
-                                        <Target className="h-6 w-6 text-secondary" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">Soumissions</p>
-                                        <p className="text-2xl font-bold">0</p>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                            <Card className="bg-card/50 border-border/60">
-                                <CardContent className="p-6 flex items-center gap-4">
-                                    <div className="p-3 bg-accent/10 rounded-lg">
-                                        <Zap className="h-6 w-6 text-accent" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-muted-foreground">Points</p>
-                                        <p className="text-2xl font-bold">0</p>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
+                        <AnimatePresence mode="wait">
+                            {isEditing ? (
+                                <motion.div
+                                    key="edit-mode"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    <Card className="border-border/60">
+                                        <CardHeader>
+                                            <CardTitle>Modifier mes informations</CardTitle>
+                                            <CardDescription>Mettez à jour vos coordonnées ou changez votre mot de passe.</CardDescription>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <form onSubmit={handleSave} className="space-y-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="name">Nom d'affichage</Label>
+                                                    <Input
+                                                        id="name"
+                                                        value={name}
+                                                        onChange={(e) => setName(e.target.value)}
+                                                        required
+                                                    />
+                                                </div>
 
-                        {/* Account Details */}
-                        <Card className="border-border/60">
-                            <CardHeader>
-                                <CardTitle>Détails du compte</CardTitle>
-                                <CardDescription>Informations visibles par les autres membres.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="grid sm:grid-cols-2 gap-6">
-                                    <div className="space-y-1">
-                                        <p className="text-sm font-medium text-muted-foreground">Nom d'affichage</p>
-                                        <p>{user.name}</p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-sm font-medium text-muted-foreground">Email</p>
-                                        <p>{user.email}</p>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-sm font-medium text-muted-foreground">Rôle</p>
-                                        <Badge variant="outline" className="capitalize">{user.role}</Badge>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-sm font-medium text-muted-foreground">ID Utilisateur</p>
-                                        <code className="text-xs">{user.id}</code>
-                                    </div>
-                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="email">Adresse Email</Label>
+                                                    <Input
+                                                        id="email"
+                                                        type="email"
+                                                        value={email}
+                                                        onChange={(e) => setEmail(e.target.value)}
+                                                        required
+                                                    />
+                                                </div>
 
-                                <div className="pt-6 border-t border-border/50">
-                                    <h3 className="text-lg font-semibold mb-4">Biographie</h3>
-                                    <p className="text-muted-foreground text-sm italic">
-                                        Aucune biographie n'a été ajoutée pour le moment.
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
+                                                <div className="pt-4 border-t border-border/50 space-y-4">
+                                                    <h3 className="font-semibold flex items-center gap-2 text-sm text-muted-foreground">
+                                                        <KeyRound className="h-4 w-4" />
+                                                        Changer le mot de passe (Optionnel)
+                                                    </h3>
+                                                    
+                                                    <div className="grid sm:grid-cols-2 gap-4">
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor="current-password">Mot de passe actuel</Label>
+                                                            <Input
+                                                                id="current-password"
+                                                                type="password"
+                                                                placeholder="Requis pour changer de mot de passe"
+                                                                value={currentPassword}
+                                                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                                            />
+                                                        </div>
 
-                        {/* Quick Actions for Organizers */}
-                        {user.role !== 'administrateur' && (
-                            <Card className="bg-primary/5 border-primary/20">
-                                <CardHeader>
-                                    <CardTitle className="text-primary flex items-center gap-2">
-                                        <Zap className="h-5 w-5" />
-                                        Actions Rapides
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="grid sm:grid-cols-2 gap-4">
-                                    <Button asChild className="w-full">
-                                        <Link to="/events/create">Créer une compétition</Link>
-                                    </Button>
-                                    <Button variant="outline" asChild className="w-full">
-                                        <Link to="/my-events">Mes compétitions</Link>
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                        )}
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor="new-password">Nouveau mot de passe</Label>
+                                                            <Input
+                                                                id="new-password"
+                                                                type="password"
+                                                                placeholder="Nouveau mot de passe"
+                                                                value={password}
+                                                                onChange={(e) => setPassword(e.target.value)}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="pt-4 flex justify-end gap-3">
+                                                    <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
+                                                        Annuler
+                                                    </Button>
+                                                    <Button type="submit" disabled={isSaving} className="gap-2">
+                                                        {isSaving ? (
+                                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
+                                                        ) : (
+                                                            <Check className="h-4 w-4" />
+                                                        )}
+                                                        Enregistrer
+                                                    </Button>
+                                                </div>
+                                            </form>
+                                        </CardContent>
+                                    </Card>
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    key="view-mode"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="space-y-6"
+                                >
+                                    {/* Stats Cards */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                        <Card className="bg-card/50 border-border/60">
+                                            <CardContent className="p-6 flex items-center gap-4">
+                                                <div className="p-3 bg-primary/10 rounded-lg">
+                                                    <Trophy className="h-6 w-6 text-primary" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-muted-foreground">Compétitions</p>
+                                                    <p className="text-2xl font-bold">Inscrit</p>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                        <Card className="bg-card/50 border-border/60">
+                                            <CardContent className="p-6 flex items-center gap-4">
+                                                <div className="p-3 bg-secondary/10 rounded-lg">
+                                                    <Target className="h-6 w-6 text-secondary" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-muted-foreground">Soumissions</p>
+                                                    <p className="text-2xl font-bold">Actives</p>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                        <Card className="bg-card/50 border-border/60">
+                                            <CardContent className="p-6 flex items-center gap-4">
+                                                <div className="p-3 bg-accent/10 rounded-lg">
+                                                    <Zap className="h-6 w-6 text-accent" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-muted-foreground">Statut</p>
+                                                    <p className="text-xl font-bold capitalize">{user.role}</p>
+                                                </div>
+                                            </CardContent>
+                                        </Card>
+                                    </div>
+
+                                    {/* Account Details */}
+                                    <Card className="border-border/60">
+                                        <CardHeader>
+                                            <CardTitle>Détails du compte</CardTitle>
+                                            <CardDescription>Informations visibles par les autres membres.</CardDescription>
+                                        </CardHeader>
+                                        <CardContent className="space-y-6">
+                                            <div className="grid sm:grid-cols-2 gap-6">
+                                                <div className="space-y-1">
+                                                    <p className="text-sm font-medium text-muted-foreground">Nom d'affichage</p>
+                                                    <p>{user.name}</p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="text-sm font-medium text-muted-foreground">Email</p>
+                                                    <p>{user.email}</p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="text-sm font-medium text-muted-foreground">Rôle</p>
+                                                    <Badge variant="outline" className="capitalize">{user.role}</Badge>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="text-sm font-medium text-muted-foreground">ID Utilisateur</p>
+                                                    <code className="text-xs">{user.id}</code>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+
+                                    {/* Quick Actions for Organizers */}
+                                    {user.role === 'administrateur' && (
+                                        <Card className="bg-primary/5 border-primary/20">
+                                            <CardHeader>
+                                                <CardTitle className="text-primary flex items-center gap-2">
+                                                    <Zap className="h-5 w-5" />
+                                                    Administration
+                                                </CardTitle>
+                                            </CardHeader>
+                                            <CardContent className="grid sm:grid-cols-2 gap-4">
+                                                <Button asChild className="w-full">
+                                                    <Link to="/admin">Dashboard Admin</Link>
+                                                </Button>
+                                                <Button variant="outline" asChild className="w-full">
+                                                    <Link to="/competitions/create">Créer une compétition</Link>
+                                                </Button>
+                                            </CardContent>
+                                        </Card>
+                                    )}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </motion.div>
                 </div>
             </div>

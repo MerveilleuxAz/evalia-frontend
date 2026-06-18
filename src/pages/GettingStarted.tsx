@@ -96,7 +96,7 @@ export default function GettingStarted() {
                                     <Link to="/register">S'inscrire <ArrowRight className="h-4 w-4" /></Link>
                                 </Button>
                                 <Button asChild variant="outline" size="lg">
-                                    <Link to="/events">Voir les challenges</Link>
+                                    <Link to="/competitions">Voir les challenges</Link>
                                 </Button>
                             </div>
                         </div>

@@ -132,7 +132,7 @@ const initialFormData: EventFormData = {
   max_submissions_total: 50,
 };
 
-export default function CreateEvent() {
+export default function CreateCompetition() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
@@ -268,15 +268,15 @@ export default function CreateEvent() {
       await createCompetition.mutateAsync(submissionData);
       
       toast({
-        title: "Événement créé !",
+        title: "Compétition créé !",
         description: "Votre compétition a été créée avec succès.",
       });
       
-      navigate('/my-events');
+      navigate('/my-competitions');
     } catch (error: any) {
       toast({
         title: "Erreur lors de la création",
-        description: error.message || "Une erreur est survenue lors de la création de l'événement.",
+        description: error.message || "Une erreur est survenue lors de la création de l'compétition.",
         variant: "destructive"
       });
     }
@@ -299,14 +299,14 @@ export default function CreateEvent() {
         <div className="mb-8">
           <Button
             variant="ghost"
-            onClick={() => navigate('/events')}
+            onClick={() => navigate('/competitions')}
             className="mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Retour aux événements
+            Retour aux compétitions
           </Button>
           <h1 className="text-3xl font-display font-bold mb-2">
-            Créer un nouvel événement
+            Créer un nouvel compétition
           </h1>
           <p className="text-muted-foreground">
             Configurez votre compétition IA en quelques étapes
@@ -375,14 +375,14 @@ export default function CreateEvent() {
                 <CardHeader>
                   <CardTitle>Informations générales</CardTitle>
                   <CardDescription>
-                    Décrivez votre événement de compétition
+                    Décrivez votre compétition de compétition
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {/* Title */}
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="title">Titre de l'événement *</Label>
+                      <Label htmlFor="title">Titre de l'compétition *</Label>
                       <Input
                         id="title"
                         placeholder="Ex: Challenge Classification Images Médicales"
@@ -718,7 +718,7 @@ export default function CreateEvent() {
                 ) : (
                   <>
                     <Check className="h-4 w-4 mr-2" />
-                    Créer l'événement
+                    Créer l'compétition
                   </>
                 )}
               </Button>

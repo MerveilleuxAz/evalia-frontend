@@ -26,7 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/context/AuthContext';
 
 const navLinks = [
-  { name: 'Événements', href: '/events' },
+  { name: 'Compétitions', href: '/competitions' },
   { name: 'Leaderboard', href: '/leaderboard' },
   { name: 'À propos', href: '/about' },
 ];
@@ -75,9 +75,9 @@ export function Navbar() {
               <>
                 {hasRole('utilisateur') && (
                   <Button asChild variant="outline" size="sm" className="gap-2">
-                    <Link to="/events/create">
+                    <Link to="/competitions/create">
                       <Plus className="h-4 w-4" />
-                      Créer un événement
+                      Créer un compétition
                     </Link>
                   </Button>
                 )}
@@ -108,19 +108,19 @@ export function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      {hasRole('utilisateur') && (
+                        <Link to="/my-competitions" className="cursor-pointer">
+                          <Trophy className="mr-2 h-4 w-4" />
+                          Mes Compétitions
+                        </Link>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/profile" className="cursor-pointer">
                         <User className="mr-2 h-4 w-4" />
                         Mon Profil
                       </Link>
                     </DropdownMenuItem>
-                    {hasRole('utilisateur') && (
-                      <DropdownMenuItem asChild>
-                        <Link to="/my-events" className="cursor-pointer">
-                          <Trophy className="mr-2 h-4 w-4" />
-                          Mes Événements
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
                     {hasRole('administrateur') && (
                       <DropdownMenuItem asChild>
                         <Link to="/admin" className="cursor-pointer">
@@ -198,6 +198,15 @@ export function Navbar() {
                       >
                         Mon Dashboard
                       </Link>
+                      {hasRole('utilisateur') && (
+                        <Link
+                          to="/my-competitions"
+                          onClick={() => setIsOpen(false)}
+                          className="block px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        >
+                          Mes Compétitions
+                        </Link>
+                      )}
                       <Link
                         to="/profile"
                         onClick={() => setIsOpen(false)}
@@ -205,15 +214,6 @@ export function Navbar() {
                       >
                         Mon Profil
                       </Link>
-                      {hasRole('utilisateur') && (
-                        <Link
-                          to="/my-events"
-                          onClick={() => setIsOpen(false)}
-                          className="block px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                        >
-                          Mes Événements
-                        </Link>
-                      )}
                       {hasRole('administrateur') && (
                         <Link
                           to="/admin"

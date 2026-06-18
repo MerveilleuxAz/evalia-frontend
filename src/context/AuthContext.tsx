@@ -10,6 +10,7 @@ interface AuthContextType {
   register: (name: string, username: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   hasRole: (role: UserRole) => boolean;
+  updateProfile: (data: { name?: string; username?: string; email?: string; password?: string; current_password?: string }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -92,6 +93,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const updateProfile = useCallback(async (data: { name?: string; username?: string; email?: string; password?: string; current_password?: string }) => {
+    setIsLoading(true);
+    try {
+      const res = await api.auth.updateMe(data);
+      if (res) {
+        setUser((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            name: res.name || prev.name,
+            email: res.email || prev.email,
+            avatar: res.username ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${res.username}` : prev.avatar,
+          };
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const hasRole = useCallback((role: UserRole) => {
     if (!user) return false;
     // L'administrateur satisfait tous les rôles
@@ -112,6 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         hasRole,
+        updateProfile,
       }}
     >
       {!isInitialLoading && children}

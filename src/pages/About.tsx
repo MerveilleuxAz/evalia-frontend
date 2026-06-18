@@ -256,7 +256,7 @@ export default function About() {
                   'Parcourir et rejoindre les compétitions',
                   'Soumettre des modèles et suivre les scores',
                   'Consulter le classement en temps réel',
-                  'Dashboard personnel multi-événements',
+                  'Dashboard personnel multi-compétitions',
                   'Historique complet des soumissions',
                 ],
               },
@@ -266,7 +266,7 @@ export default function About() {
                 color: 'text-secondary',
                 bg: 'bg-secondary/10',
                 items: [
-                  'Créer des événements avec un wizard guidé',
+                  'Créer des compétitions avec un wizard guidé',
                   'Uploader datasets et configurer métriques',
                   'Gérer participants et soumissions',
                   'Statistiques et analytics en temps réel',
@@ -281,7 +281,7 @@ export default function About() {
                 items: [
                   'Vue globale de la plateforme',
                   'Gestion de tous les utilisateurs',
-                  'Modération des événements',
+                  'Modération des compétitions',
                   'Statistiques globales',
                   'Configuration de la plateforme',
                 ],
@@ -368,8 +368,8 @@ export default function About() {
                     </Link>
                   </Button>
                   <Button asChild variant="outline" size="lg" className="gap-2">
-                    <Link to="/events">
-                      Voir les événements
+                    <Link to="/competitions">
+                      Voir les compétitions
                       <ArrowRight className="h-4 w-4" />
                     </Link>
                   </Button>
@@ -377,7 +377,7 @@ export default function About() {
               ) : (
                 <>
                   <Button asChild size="lg" className="gap-2">
-                    <Link to="/events">
+                    <Link to="/competitions">
                       <Trophy className="h-4 w-4" />
                       Explorer les compétitions
                     </Link>

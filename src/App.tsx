@@ -4,18 +4,18 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
-import { EventProvider } from "@/context/EventContext";
+import { CompetitionProvider } from "@/context/CompetitionContext";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PrivateRoute } from "@/components/PrivateRoute";
 
 // Pages
 import Home from "./pages/Home";
-import Events from "./pages/Events";
-import EventDetails from "./pages/EventDetails";
-import EventSubmit from "./pages/EventSubmit";
-import CreateEvent from "./pages/CreateEvent";
-import ManageEvent from "./pages/ManageEvent";
+import Competitions from "./pages/Competitions";
+import CompetitionDetails from "./pages/CompetitionDetails";
+import CompetitionSubmit from "./pages/CompetitionSubmit";
+import CreateCompetition from "./pages/CreateCompetition";
+import ManageCompetition from "./pages/ManageCompetition";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -29,14 +29,14 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Rules from "./pages/Rules";
 import Profile from "./pages/Profile";
-import MyEvents from "./pages/MyEvents";
+import MyCompetitions from "./pages/MyCompetitions";
 import GettingStarted from "./pages/GettingStarted";
 import Tutorials from "./pages/Tutorials";
 import FAQ from "./pages/FAQ";
 import Blog from "./pages/Blog";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserManagement from "./pages/admin/UserManagement";
-import EventModeration from "./pages/admin/EventModeration";
+import CompetitionModeration from "./pages/admin/CompetitionModeration";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminSettings from "./pages/admin/AdminSettings";
 
@@ -46,7 +46,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <EventProvider>
+        <CompetitionProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter>
@@ -56,8 +56,8 @@ const App = () => (
                 <Routes>
                   {/* Public Routes */}
                   <Route path="/" element={<Home />} />
-                  <Route path="/events" element={<Events />} />
-                  <Route path="/events/:eventId" element={<EventDetails />} />
+                  <Route path="/competitions" element={<Competitions />} />
+                  <Route path="/competitions/:competitionId" element={<CompetitionDetails />} />
                   <Route path="/leaderboard" element={<Leaderboard />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/contact" element={<Contact />} />
@@ -75,10 +75,10 @@ const App = () => (
 
                   {/* Protected Routes */}
                   <Route
-                    path="/events/:eventId/submit"
+                    path="/competitions/:competitionId/submit"
                     element={
                       <PrivateRoute>
-                        <EventSubmit />
+                        <CompetitionSubmit />
                       </PrivateRoute>
                     }
                   />
@@ -101,26 +101,26 @@ const App = () => (
 
                   {/* Organizer Routes */}
                   <Route
-                    path="/events/create"
+                    path="/competitions/create"
                     element={
                       <PrivateRoute>
-                        <CreateEvent />
+                        <CreateCompetition />
                       </PrivateRoute>
                     }
                   />
                   <Route
-                    path="/events/:eventId/manage"
+                    path="/competitions/:competitionId/manage"
                     element={
                       <PrivateRoute>
-                        <ManageEvent />
+                        <ManageCompetition />
                       </PrivateRoute>
                     }
                   />
                   <Route
-                    path="/my-events"
+                    path="/my-competitions"
                     element={
                       <PrivateRoute>
-                        <MyEvents />
+                        <MyCompetitions />
                       </PrivateRoute>
                     }
                   />
@@ -143,10 +143,10 @@ const App = () => (
                     }
                   />
                   <Route
-                    path="/admin/events"
+                    path="/admin/competitions"
                     element={
                       <PrivateRoute role="administrateur">
-                        <EventModeration />
+                        <CompetitionModeration />
                       </PrivateRoute>
                     }
                   />
@@ -174,7 +174,7 @@ const App = () => (
               <Footer />
             </div>
           </BrowserRouter>
-        </EventProvider>
+        </CompetitionProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
