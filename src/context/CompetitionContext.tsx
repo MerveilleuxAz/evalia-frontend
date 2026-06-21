@@ -131,16 +131,27 @@ export function CompetitionProvider({ children }: { children: ReactNode }) {
     try {
       const data = await api.competitions.leaderboard(competitionId);
       if (data && data.leaderboard) {
-        setLeaderboard(data.leaderboard);
+        const mapped = data.leaderboard.map((item: any) => ({
+          rank: item.rank,
+          user_id: item.user?.id || item.user_id,
+          user_name: item.user?.username || item.user?.name || item.user_name || 'Anonyme',
+          user_avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${item.user?.username || item.user_name || 'default'}`,
+          best_score: item.score ?? item.best_score ?? 0,
+          submissions_count: item.submissions_count || 1,
+          last_submission: item.submitted_at || item.last_submission || new Date().toISOString(),
+          metrics: item.metrics_detail || item.metrics,
+        }));
+        setLeaderboard(mapped);
       } else if (data && data.participants) {
         // Fallback sur participants si leaderboard pas encore structuré
         const mapped = data.participants.map((p: any, idx: number) => ({
           rank: idx + 1,
           user_id: p.id,
-          user_name: p.username || p.name,
-          user_avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.username}`,
+          user_name: p.username || p.name || 'Anonyme',
+          user_avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.username || 'default'}`,
           best_score: p.best_score ?? 0,
           submissions_count: p.submissions_count ?? 0,
+          last_submission: p.last_submission || new Date().toISOString(),
         }));
         setLeaderboard(mapped);
       } else {
@@ -154,10 +165,11 @@ export function CompetitionProvider({ children }: { children: ReactNode }) {
           const mapped = data.participants.map((p: any, idx: number) => ({
             rank: idx + 1,
             user_id: p.id,
-            user_name: p.username || p.name,
-            user_avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.username}`,
+            user_name: p.username || p.name || 'Anonyme',
+            user_avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${p.username || 'default'}`,
             best_score: 0,
             submissions_count: 0,
+            last_submission: new Date().toISOString(),
           }));
           setLeaderboard(mapped);
         }

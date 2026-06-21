@@ -9,6 +9,7 @@ Application frontend React pour **Evalia**, une plateforme de compétitions et d
 - [Prérequis](#prérequis)
 - [Démarrage rapide](#démarrage-rapide)
 - [Intégration avec le backend](#intégration-avec-le-backend)
+- [Testabilité](#testabilité)
 - [Build de production](#build-de-production)
 - [Scripts disponibles](#scripts-disponibles)
 - [Structure du projet](#structure-du-projet)
